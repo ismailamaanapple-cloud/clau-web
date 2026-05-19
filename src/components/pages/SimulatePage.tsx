@@ -7,14 +7,20 @@ import { WhatIfMode } from "@/components/simulate/WhatIfMode";
 import { MonteCarloMode } from "@/components/simulate/MonteCarloMode";
 import { NetWorthMode } from "@/components/simulate/NetWorthMode";
 import { LoansMode } from "@/components/simulate/LoansMode";
+import { CoastFireMode } from "@/components/simulate/CoastFireMode";
+import { SavingsRateMode } from "@/components/simulate/SavingsRateMode";
+import { SequenceRiskMode } from "@/components/simulate/SequenceRiskMode";
 import { cn } from "@/lib/cn";
-import { Sparkles, TrendingUp, Home as HomeIcon, GraduationCap } from "lucide-react";
+import { Sparkles, TrendingUp, Home as HomeIcon, GraduationCap, Anchor, Percent, AlertTriangle } from "lucide-react";
 
-type Mode = "what-if" | "monte-carlo" | "net-worth" | "loans";
+type Mode = "what-if" | "monte-carlo" | "coast-fire" | "savings-rate" | "sequence-risk" | "net-worth" | "loans";
 
 const MODES: { id: Mode; label: string; shortLabel: string; icon: React.ComponentType<{ size?: number }> }[] = [
   { id: "what-if", label: "What If", shortLabel: "What If", icon: Sparkles },
   { id: "monte-carlo", label: "Monte Carlo", shortLabel: "Monte Carlo", icon: TrendingUp },
+  { id: "coast-fire", label: "Coast FIRE", shortLabel: "Coast FIRE", icon: Anchor },
+  { id: "savings-rate", label: "Savings Rate Curve", shortLabel: "Savings Rate", icon: Percent },
+  { id: "sequence-risk", label: "Sequence Risk", shortLabel: "Seq. Risk", icon: AlertTriangle },
   { id: "net-worth", label: "Net Worth Timeline", shortLabel: "Net Worth", icon: HomeIcon },
   { id: "loans", label: "Student Loans", shortLabel: "Loans", icon: GraduationCap },
 ];
@@ -40,7 +46,7 @@ function SimulateInner() {
       </header>
 
       <Card className="!p-2">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-1.5">
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-1.5">
           {MODES.map((m) => {
             const Icon = m.icon;
             const active = mode === m.id;
@@ -66,6 +72,9 @@ function SimulateInner() {
 
       {mode === "what-if" && <WhatIfMode />}
       {mode === "monte-carlo" && <MonteCarloMode />}
+      {mode === "coast-fire" && <CoastFireMode />}
+      {mode === "savings-rate" && <SavingsRateMode />}
+      {mode === "sequence-risk" && <SequenceRiskMode />}
       {mode === "net-worth" && <NetWorthMode />}
       {mode === "loans" && <LoansMode />}
     </div>

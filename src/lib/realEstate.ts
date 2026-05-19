@@ -210,3 +210,247 @@ export function simulateEquityAlternative(opts: {
   }
   return out;
 }
+
+// === Buy vs Rent (primary residence) =======================================
+export interface BuyVsRentInputs {
+  homePrice: number;
+  downPaymentPct: number;
+  interestRatePct: number;
+  loanTermYears: number;
+  closingCostsPct: number;
+  propertyTaxPct: number;
+  insuranceMonthly: number;
+  maintenancePct: number;
+  hoaMonthly: number;
+  appreciationPct: number;
+  sellingCostsPct: number;
+  marginalTaxRate: number; // for mortgage interest deduction (rough)
+  itemizesDeductions: boolean;
+
+  monthlyRent: number;
+  rentGrowthPct: number;
+  rentersInsuranceMonthly: number;
+
+  investmentReturnPct: number;
+  inflationPct: number;
+  years: number;
+}
+
+export interface BuyVsRentYear {
+  year: number;
+  buyNetWorth: number;
+  rentNetWorth: number;
+  buyMonthlyCost: number;
+  rentMonthlyCost: number;
+  propertyValue: number;
+  loanBalance: number;
+  rentInvestmentBalance: number;
+}
+
+export function simulateBuyVsRent(inputs: BuyVsRentInputs): {
+  yearly: BuyVsRentYear[];
+  breakEvenYear: number | null;
+  finalDifference: number;
+  recommendation: "buy" | "rent" | "neutral";
+} {
+  const downPayment = inputs.homePrice * (inputs.downPaymentPct / 100);
+  const loan = inputs.homePrice - downPayment;
+  const closing = inputs.homePrice * (inputs.closingCostsPct / 100);
+  const pi = mortgagePayment(loan, inputs.interestRatePct, inputs.loanTermYears);
+  const monthlyR = inputs.investmentReturnPct / 100 / 12;
+
+  // The renter invests (downPayment + closing) up front, plus any monthly
+  // difference if buying is more expensive in any month.
+  let rentInvest = downPayment + closing;
+  const yearly: BuyVsRentYear[] = [];
+  let breakEvenYear: number | null = null;
+
+  for (let y = 0; y <= inputs.years; y++) {
+    const propertyValue = inputs.homePrice * Math.pow(1 + inputs.appreciationPct / 100, y);
+    const loanBalance = loanBalanceAfter(loan, inputs.interestRatePct, inputs.loanTermYears, y * 12);
+    const sellingCosts = propertyValue * (inputs.sellingCostsPct / 100);
+    const buyEquity = propertyValue - sellingCosts - loanBalance;
+
+    // Year-y monthly costs
+    const yTax = (inputs.homePrice * inputs.propertyTaxPct / 100) / 12;
+    const yMaint = (inputs.homePrice * inputs.maintenancePct / 100) / 12;
+    const yInsurance = inputs.insuranceMonthly;
+    const yHoa = inputs.hoaMonthly;
+    // Rough mortgage-interest tax shield (assumes mostly interest in early years)
+    const taxShield = inputs.itemizesDeductions
+      ? (loanBalance * inputs.interestRatePct) / 100 / 12 * inputs.marginalTaxRate
+      : 0;
+    const buyMonthly = pi + yTax + yMaint + yInsurance + yHoa - taxShield;
+
+    const rentMult = Math.pow(1 + inputs.rentGrowthPct / 100, y);
+    const yRent = inputs.monthlyRent * rentMult;
+    const rentMonthly = yRent + inputs.rentersInsuranceMonthly;
+
+    // Run a year of investing for the renter (if y > 0)
+    if (y > 0) {
+      const monthlyDiff = buyMonthly - rentMonthly; // positive => buying is pricier
+      for (let m = 0; m < 12; m++) {
+        rentInvest = rentInvest * (1 + monthlyR) + Math.max(0, monthlyDiff);
+      }
+    }
+
+    const rentInvestmentAfterTaxIfSold =
+      rentInvest > downPayment + closing
+        ? rentInvest - (rentInvest - (downPayment + closing)) * 0.15
+        : rentInvest;
+
+    const buyNetWorth = buyEquity;
+    const rentNetWorth = rentInvestmentAfterTaxIfSold;
+
+    yearly.push({
+      year: y,
+      buyNetWorth,
+      rentNetWorth,
+      buyMonthlyCost: buyMonthly,
+      rentMonthlyCost: rentMonthly,
+      propertyValue,
+      loanBalance,
+      rentInvestmentBalance: rentInvest,
+    });
+
+    if (breakEvenYear === null && y > 0 && buyNetWorth >= rentNetWorth) breakEvenYear = y;
+  }
+
+  const finalDifference = yearly[yearly.length - 1].buyNetWorth - yearly[yearly.length - 1].rentNetWorth;
+  const recommendation =
+    Math.abs(finalDifference) < 10_000 ? "neutral" : finalDifference > 0 ? "buy" : "rent";
+  return { yearly, breakEvenYear, finalDifference, recommendation };
+}
+
+// === Mortgage Payoff vs Invest =============================================
+export interface PayoffVsInvestInputs {
+  mortgageBalance: number;
+  interestRatePct: number;
+  monthsRemaining: number;
+  baseMonthlyPayment: number; // P&I currently
+  extraPerMonth: number;
+  investmentReturnPct: number;
+  marginalTaxRate: number; // for interest deduction shield
+  itemizes: boolean;
+}
+
+export interface PayoffVsInvestResult {
+  payoffStrategy: { netWorthByMonth: number[]; payoffMonth: number | null; totalInterest: number };
+  investStrategy: { netWorthByMonth: number[]; payoffMonth: number; investmentValue: number; totalInterest: number };
+  finalDifference: number;
+  betterChoice: "payoff" | "invest";
+}
+
+export function simulatePayoffVsInvest(opts: PayoffVsInvestInputs): PayoffVsInvestResult {
+  const r = opts.interestRatePct / 100 / 12;
+  const invR = opts.investmentReturnPct / 100 / 12;
+  const horizon = opts.monthsRemaining;
+
+  // PAY EXTRA on mortgage
+  let loanA = opts.mortgageBalance;
+  let investA = 0;
+  let totalInterestA = 0;
+  let payoffMonthA: number | null = null;
+  const netWorthA: number[] = [-loanA];
+
+  for (let m = 1; m <= horizon; m++) {
+    if (loanA > 0) {
+      const interest = loanA * r;
+      totalInterestA += interest;
+      loanA += interest;
+      let pay = opts.baseMonthlyPayment + opts.extraPerMonth;
+      pay = Math.min(pay, loanA);
+      loanA -= pay;
+      if (loanA <= 0.01) {
+        loanA = 0;
+        if (payoffMonthA === null) payoffMonthA = m;
+      }
+    } else {
+      // loan paid off → invest the full payment (base + extra)
+      investA = investA * (1 + invR) + (opts.baseMonthlyPayment + opts.extraPerMonth);
+    }
+    netWorthA.push(investA - loanA);
+  }
+
+  // INVEST the extra
+  let loanB = opts.mortgageBalance;
+  let investB = 0;
+  let totalInterestB = 0;
+  const netWorthB: number[] = [-loanB];
+  for (let m = 1; m <= horizon; m++) {
+    if (loanB > 0) {
+      const interest = loanB * r;
+      totalInterestB += interest;
+      loanB += interest;
+      loanB -= Math.min(opts.baseMonthlyPayment, loanB);
+      if (loanB <= 0.01) loanB = 0;
+    }
+    investB = investB * (1 + invR) + opts.extraPerMonth;
+    netWorthB.push(investB - loanB);
+  }
+
+  const finalA = netWorthA[netWorthA.length - 1];
+  const finalB = netWorthB[netWorthB.length - 1];
+
+  return {
+    payoffStrategy: { netWorthByMonth: netWorthA, payoffMonth: payoffMonthA, totalInterest: totalInterestA },
+    investStrategy: {
+      netWorthByMonth: netWorthB,
+      payoffMonth: horizon,
+      investmentValue: investB,
+      totalInterest: totalInterestB,
+    },
+    finalDifference: finalA - finalB,
+    betterChoice: finalA > finalB ? "payoff" : "invest",
+  };
+}
+
+// === Refinance Calculator ==================================================
+export interface RefinanceInputs {
+  currentBalance: number;
+  currentRatePct: number;
+  monthsRemaining: number;
+  newRatePct: number;
+  newTermYears: number;
+  closingCosts: number;
+  cashOutAmount: number;
+  cashOutReturnPct: number; // if invested
+}
+
+export interface RefinanceResult {
+  currentMonthlyPI: number;
+  newLoanAmount: number;
+  newMonthlyPI: number;
+  monthlySavings: number;
+  breakEvenMonths: number;
+  totalInterestCurrent: number;
+  totalInterestNew: number;
+  lifetimeInterestSavings: number;
+  cashOutAfterYears: (years: number) => number;
+}
+
+export function analyzeRefinance(opts: RefinanceInputs): RefinanceResult {
+  const currentYears = opts.monthsRemaining / 12;
+  const currentPI = mortgagePayment(opts.currentBalance, opts.currentRatePct, currentYears);
+  const newLoan = opts.currentBalance + opts.closingCosts + opts.cashOutAmount;
+  const newPI = mortgagePayment(newLoan, opts.newRatePct, opts.newTermYears);
+  const savings = currentPI - newPI;
+  const breakEven = savings > 0 ? opts.closingCosts / savings : Infinity;
+
+  // total interest under each
+  const totalCurrent = currentPI * opts.monthsRemaining - opts.currentBalance;
+  const totalNew = newPI * (opts.newTermYears * 12) - newLoan;
+
+  return {
+    currentMonthlyPI: currentPI,
+    newLoanAmount: newLoan,
+    newMonthlyPI: newPI,
+    monthlySavings: savings,
+    breakEvenMonths: breakEven,
+    totalInterestCurrent: totalCurrent,
+    totalInterestNew: totalNew,
+    lifetimeInterestSavings: totalCurrent - totalNew,
+    cashOutAfterYears: (years) =>
+      opts.cashOutAmount * Math.pow(1 + opts.cashOutReturnPct / 100, years),
+  };
+}

@@ -2,6 +2,33 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 
+export interface NetWorthSnapshot {
+  id: string;
+  date: string; // ISO yyyy-mm-dd
+  netWorth: number;
+  assets: number;
+  liabilities: number;
+  note?: string;
+}
+
+export interface SavingsGoal {
+  id: string;
+  name: string;
+  targetAmount: number;
+  targetDate: string; // ISO yyyy-mm-dd
+  currentAmount: number;
+  monthlyContribution: number;
+  category: "house" | "wedding" | "education" | "travel" | "emergency" | "sabbatical" | "vehicle" | "other";
+  createdAt: string;
+}
+
+export interface ExpenseCategory {
+  id: string;
+  name: string;
+  monthlyAmount: number;
+  type: "fixed" | "variable" | "discretionary";
+}
+
 export interface UserProfile {
   hasOnboarded: boolean;
   name?: string;
@@ -27,6 +54,11 @@ export interface UserProfile {
   creditCardDebt?: number;
   personalLoans?: number;
   otherDebts?: number;
+  // Tracking
+  netWorthSnapshots?: NetWorthSnapshot[];
+  goals?: SavingsGoal[];
+  expenses?: ExpenseCategory[];
+  monthlyIncome?: number;
 }
 
 const STORAGE_KEY = "clau-user-profile-v1";
