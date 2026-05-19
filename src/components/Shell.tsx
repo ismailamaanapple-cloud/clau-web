@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Logo } from "@/components/Logo";
 import { useUser } from "@/lib/UserContext";
-import { Home, LineChart, Sparkles, BookOpen, User as UserIcon } from "lucide-react";
+import { Home, LineChart, Sparkles, BookOpen, User as UserIcon, Building2 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { Onboarding } from "@/components/onboarding/Onboarding";
 
@@ -13,6 +13,7 @@ const NAV = [
   { href: "/", label: "Dashboard", icon: Home },
   { href: "/simulate", label: "Simulate", icon: Sparkles },
   { href: "/invest", label: "Invest", icon: LineChart },
+  { href: "/property", label: "Property", icon: Building2 },
   { href: "/learn", label: "Learn", icon: BookOpen },
   { href: "/profile", label: "Profile", icon: UserIcon },
 ];
