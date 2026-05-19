@@ -43,6 +43,8 @@ export function PropertyPage() {
   const [hoaMonthly, setHoaMonthly] = useState(0);
 
   const [holdingYears, setHoldingYears] = useState(15);
+  // Note: even though sliders cap at large numbers, every value field is
+  // click-to-type, so users can punch in higher numbers manually if needed.
   const [appreciationPct, setAppreciationPct] = useState(3);
   const [rentGrowthPct, setRentGrowthPct] = useState(3);
   const [expenseGrowthPct, setExpenseGrowthPct] = useState(2.5);
@@ -154,7 +156,7 @@ export function PropertyPage() {
             <CardTitle className="!mb-0">Purchase &amp; Financing</CardTitle>
           </div>
           <div className="space-y-3">
-            <Slider label="Property Price" value={price} onChange={setPrice} min={50_000} max={5_000_000} step={5_000} prefix="$" />
+            <Slider label="Property Price" value={price} onChange={setPrice} min={50_000} max={40_000_000} step={10_000} prefix="$" />
             <Slider
               label={`Down Payment (${formatCurrency(price * (downPaymentPct / 100), true)})`}
               value={downPaymentPct}
@@ -164,7 +166,7 @@ export function PropertyPage() {
               step={1}
               suffix="%"
             />
-            <Slider label="Interest Rate" value={interestRate} onChange={setInterestRate} min={1} max={15} step={0.125} suffix="%" />
+            <Slider label="Interest Rate" value={interestRate} onChange={setInterestRate} min={0} max={20} step={0.125} suffix="%" />
             <div className="rounded-xl bg-[var(--surface-light)] border border-[var(--border)] p-4">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-sm text-[var(--text-secondary)] font-medium">Loan Term</span>
@@ -186,7 +188,7 @@ export function PropertyPage() {
                 ))}
               </div>
             </div>
-            <Slider label="Closing Costs" value={closingCostsPct} onChange={setClosingCostsPct} min={0} max={8} step={0.25} suffix="%" />
+            <Slider label="Closing Costs" value={closingCostsPct} onChange={setClosingCostsPct} min={0} max={15} step={0.25} suffix="%" />
           </div>
         </Card>
 
@@ -199,13 +201,13 @@ export function PropertyPage() {
             <CardTitle className="!mb-0">Income &amp; Operating Expenses</CardTitle>
           </div>
           <div className="space-y-3">
-            <Slider label="Monthly Rent" value={monthlyRent} onChange={setMonthlyRent} min={500} max={30_000} step={50} prefix="$" suffix="/mo" />
-            <Slider label="Vacancy Rate" value={vacancyPct} onChange={setVacancyPct} min={0} max={20} step={0.5} suffix="%" />
-            <Slider label="Property Tax (annual)" value={propertyTaxPct} onChange={setPropertyTaxPct} min={0} max={4} step={0.05} suffix="%" />
-            <Slider label="Insurance" value={insuranceMonthly} onChange={setInsuranceMonthly} min={0} max={2_000} step={10} prefix="$" suffix="/mo" />
-            <Slider label="Maintenance & Repairs (annual)" value={maintenancePct} onChange={setMaintenancePct} min={0} max={5} step={0.1} suffix="%" />
-            <Slider label="Property Management (of rent)" value={managementPct} onChange={setManagementPct} min={0} max={15} step={0.5} suffix="%" />
-            <Slider label="HOA" value={hoaMonthly} onChange={setHoaMonthly} min={0} max={2_000} step={25} prefix="$" suffix="/mo" />
+            <Slider label="Monthly Rent" value={monthlyRent} onChange={setMonthlyRent} min={500} max={500_000} step={100} prefix="$" suffix="/mo" />
+            <Slider label="Vacancy Rate" value={vacancyPct} onChange={setVacancyPct} min={0} max={50} step={0.5} suffix="%" />
+            <Slider label="Property Tax (annual)" value={propertyTaxPct} onChange={setPropertyTaxPct} min={0} max={10} step={0.05} suffix="%" />
+            <Slider label="Insurance" value={insuranceMonthly} onChange={setInsuranceMonthly} min={0} max={20_000} step={25} prefix="$" suffix="/mo" />
+            <Slider label="Maintenance & Repairs (annual)" value={maintenancePct} onChange={setMaintenancePct} min={0} max={15} step={0.1} suffix="%" />
+            <Slider label="Property Management (of rent)" value={managementPct} onChange={setManagementPct} min={0} max={30} step={0.5} suffix="%" />
+            <Slider label="HOA" value={hoaMonthly} onChange={setHoaMonthly} min={0} max={10_000} step={25} prefix="$" suffix="/mo" />
           </div>
         </Card>
       </div>
@@ -257,11 +259,11 @@ export function PropertyPage() {
           <CardTitle className="!mb-0">Long-Term Assumptions</CardTitle>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <Slider label="Holding Period" value={holdingYears} onChange={setHoldingYears} min={1} max={40} step={1} suffix=" yrs" />
-          <Slider label="Property Appreciation" value={appreciationPct} onChange={setAppreciationPct} min={0} max={10} step={0.25} suffix="% /yr" />
-          <Slider label="Rent Growth" value={rentGrowthPct} onChange={setRentGrowthPct} min={0} max={10} step={0.25} suffix="% /yr" />
-          <Slider label="Expense Inflation" value={expenseGrowthPct} onChange={setExpenseGrowthPct} min={0} max={10} step={0.25} suffix="% /yr" />
-          <Slider label="Selling Costs (agent + fees)" value={sellingCostsPct} onChange={setSellingCostsPct} min={0} max={10} step={0.5} suffix="%" />
+          <Slider label="Holding Period" value={holdingYears} onChange={setHoldingYears} min={1} max={50} step={1} suffix=" yrs" />
+          <Slider label="Property Appreciation" value={appreciationPct} onChange={setAppreciationPct} min={-5} max={20} step={0.25} suffix="% /yr" />
+          <Slider label="Rent Growth" value={rentGrowthPct} onChange={setRentGrowthPct} min={0} max={20} step={0.25} suffix="% /yr" />
+          <Slider label="Expense Inflation" value={expenseGrowthPct} onChange={setExpenseGrowthPct} min={0} max={20} step={0.25} suffix="% /yr" />
+          <Slider label="Selling Costs (agent + fees)" value={sellingCostsPct} onChange={setSellingCostsPct} min={0} max={15} step={0.25} suffix="%" />
         </div>
       </Card>
 
@@ -333,7 +335,7 @@ export function PropertyPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
-          <Slider label="Stock Market Return" value={equityReturnPct} onChange={setEquityReturnPct} min={0} max={15} step={0.25} suffix="% /yr" />
+          <Slider label="Stock Market Return" value={equityReturnPct} onChange={setEquityReturnPct} min={0} max={25} step={0.25} suffix="% /yr" />
           <div className="rounded-xl bg-[var(--surface-light)] border border-[var(--border)] p-4 flex items-center justify-between">
             <div>
               <div className="text-sm font-medium text-[var(--text-secondary)]">Reinvest rental cash flow into stocks?</div>

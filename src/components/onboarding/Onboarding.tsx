@@ -51,6 +51,21 @@ export function Onboarding() {
     });
   };
 
+  // Drop the user straight into the app with sane defaults — they can tweak
+  // everything later in Profile / Dashboard.
+  const skip = () => {
+    updateProfile({
+      hasOnboarded: true,
+      name: "Friend",
+      age: 30,
+      retirementAge: 60,
+      initialInvestment: 10_000,
+      monthlyContribution: 1_500,
+      fireTarget: 2_000_000,
+      annualReturn: 8,
+    });
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-[var(--background)] relative overflow-hidden px-4 py-10">
       {/* Floating background orbs */}
@@ -73,9 +88,18 @@ export function Onboarding() {
                 portfolio projections, and FIRE math — all in one place.
               </p>
             </div>
-            <Button size="lg" className="w-full" onClick={() => setStep("name")}>
-              Get Started
-            </Button>
+            <div className="w-full flex flex-col gap-3">
+              <Button size="lg" className="w-full" onClick={() => setStep("name")}>
+                Get Started
+              </Button>
+              <button
+                type="button"
+                onClick={skip}
+                className="text-sm text-[var(--text-secondary)] hover:text-white transition py-1"
+              >
+                Skip for now →
+              </button>
+            </div>
             <p className="text-xs text-[var(--text-muted)] leading-relaxed">
               By continuing you agree to our{" "}
               <Link href="/terms" className="text-[var(--green)] underline">
@@ -96,6 +120,7 @@ export function Onboarding() {
             subtitle="We'll use it to personalize your experience."
             onBack={() => setStep("welcome")}
             onNext={() => setStep("age")}
+            onSkip={skip}
             disabled={!name.trim()}
           >
             <input
@@ -115,6 +140,7 @@ export function Onboarding() {
             subtitle="We'll use your age to personalize timelines and projections."
             onBack={() => setStep("name")}
             onNext={() => setStep("retire-age")}
+            onSkip={skip}
           >
             <NumberInput value={age} onChange={setAge} suffix="years" min={16} max={100} />
           </OnboardingStep>
@@ -126,6 +152,7 @@ export function Onboarding() {
             subtitle={`You're ${age} now — that's ${Math.max(1, retireAge - age)} years to FIRE. FIRE = Financial Independence, Retire Early.`}
             onBack={() => setStep("age")}
             onNext={() => setStep("initial")}
+            onSkip={skip}
           >
             <NumberInput value={retireAge} onChange={setRetireAge} suffix="years" min={age + 1} max={100} />
           </OnboardingStep>
@@ -137,6 +164,7 @@ export function Onboarding() {
             subtitle="Your starting balance — set 0 if you're starting fresh."
             onBack={() => setStep("retire-age")}
             onNext={() => setStep("monthly")}
+            onSkip={skip}
           >
             <NumberInput value={initial} onChange={setInitial} prefix="$" min={0} max={50_000_000} />
           </OnboardingStep>
@@ -148,6 +176,7 @@ export function Onboarding() {
             subtitle="Recurring contributions are what make compound interest work."
             onBack={() => setStep("initial")}
             onNext={() => setStep("fire")}
+            onSkip={skip}
           >
             <NumberInput value={monthly} onChange={setMonthly} prefix="$" min={0} max={100_000} />
           </OnboardingStep>
@@ -160,6 +189,7 @@ export function Onboarding() {
             onBack={() => setStep("monthly")}
             onNext={finish}
             nextLabel="Finish"
+            onSkip={skip}
           >
             <div className="flex gap-2 mb-2">
               <button
@@ -236,6 +266,7 @@ function OnboardingStep({
   children,
   onBack,
   onNext,
+  onSkip,
   nextLabel = "Continue",
   disabled,
 }: {
@@ -244,17 +275,28 @@ function OnboardingStep({
   children: React.ReactNode;
   onBack: () => void;
   onNext: () => void;
+  onSkip?: () => void;
   nextLabel?: string;
   disabled?: boolean;
 }) {
   return (
     <div className="flex flex-col gap-6 animate-fade-in">
-      <button
-        onClick={onBack}
-        className="self-start text-sm text-[var(--text-secondary)] hover:text-white flex items-center gap-1"
-      >
-        <ChevronLeft size={16} /> Back
-      </button>
+      <div className="flex items-center justify-between">
+        <button
+          onClick={onBack}
+          className="text-sm text-[var(--text-secondary)] hover:text-white flex items-center gap-1"
+        >
+          <ChevronLeft size={16} /> Back
+        </button>
+        {onSkip && (
+          <button
+            onClick={onSkip}
+            className="text-sm text-[var(--text-secondary)] hover:text-white transition"
+          >
+            Skip →
+          </button>
+        )}
+      </div>
       <div>
         <h1 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-white mb-3 leading-tight">{title}</h1>
         <p className="text-[var(--text-secondary)] leading-relaxed">{subtitle}</p>
