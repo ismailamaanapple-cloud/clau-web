@@ -5,6 +5,7 @@ import { Layers } from "lucide-react";
 import { PlanLayout } from "./_shared";
 import { Card, CardTitle, StatValue } from "@/components/ui/Card";
 import { Slider } from "@/components/ui/Slider";
+import { Toggle } from "@/components/ui/Toggle";
 import { formatCurrency } from "@/lib/format";
 import { buildAccountWaterfall, type FilingStatus } from "@/lib/tax";
 
@@ -111,9 +112,7 @@ export function AccountWaterfall() {
           </div>
           <div className="rounded-xl bg-[var(--surface-light)] border border-[var(--border)] p-4 flex items-center justify-between">
             <div className="text-sm text-[var(--text-secondary)] font-medium">HSA Eligible?</div>
-            <button onClick={() => setHasHSA(v => !v)} className={`relative w-12 h-6 rounded-full transition ${hasHSA ? "bg-[var(--green)]" : "bg-[var(--border)]"}`}>
-              <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-transform ${hasHSA ? "translate-x-6" : "translate-x-0.5"}`} />
-            </button>
+            <Toggle checked={hasHSA} onChange={setHasHSA} label="HSA eligible" />
           </div>
           {hasHSA && (
             <div className="rounded-xl bg-[var(--surface-light)] border border-[var(--border)] p-4">

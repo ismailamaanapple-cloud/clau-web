@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { Card, CardTitle, StatValue } from "@/components/ui/Card";
 import { Slider } from "@/components/ui/Slider";
+import { Toggle } from "@/components/ui/Toggle";
 import { useUser } from "@/lib/UserContext";
 import { formatCurrency, formatPercent } from "@/lib/format";
 import {
@@ -332,19 +333,7 @@ export function RentalCalcMode() {
               <div className="text-sm font-medium text-[var(--text-secondary)]">Reinvest rental cash flow into stocks?</div>
               <div className="text-xs text-[var(--text-muted)] mt-0.5">Apples-to-apples: stocks side also gets the monthly cash.</div>
             </div>
-            <button
-              type="button"
-              onClick={() => setReinvestCashFlow((v) => !v)}
-              className={`relative w-12 h-6 rounded-full transition ${
-                reinvestCashFlow ? "bg-[var(--green)]" : "bg-[var(--border)]"
-              }`}
-            >
-              <span
-                className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-transform ${
-                  reinvestCashFlow ? "translate-x-6" : "translate-x-0.5"
-                }`}
-              />
-            </button>
+            <Toggle checked={reinvestCashFlow} onChange={setReinvestCashFlow} label="Reinvest rental cash flow" />
           </div>
         </div>
 

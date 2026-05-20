@@ -11,18 +11,60 @@ import { CoastFireMode } from "@/components/simulate/CoastFireMode";
 import { SavingsRateMode } from "@/components/simulate/SavingsRateMode";
 import { SequenceRiskMode } from "@/components/simulate/SequenceRiskMode";
 import { cn } from "@/lib/cn";
-import { Sparkles, TrendingUp, Home as HomeIcon, GraduationCap, Anchor, Percent, AlertTriangle } from "lucide-react";
+import { Sparkles, TrendingUp, Home as HomeIcon, GraduationCap, Anchor, Percent, AlertTriangle, Info } from "lucide-react";
 
 type Mode = "what-if" | "monte-carlo" | "coast-fire" | "savings-rate" | "sequence-risk" | "net-worth" | "loans";
 
-const MODES: { id: Mode; label: string; shortLabel: string; icon: React.ComponentType<{ size?: number }> }[] = [
-  { id: "what-if", label: "What If", shortLabel: "What If", icon: Sparkles },
-  { id: "monte-carlo", label: "Monte Carlo", shortLabel: "Monte Carlo", icon: TrendingUp },
-  { id: "coast-fire", label: "Coast FIRE", shortLabel: "Coast FIRE", icon: Anchor },
-  { id: "savings-rate", label: "Savings Rate Curve", shortLabel: "Savings Rate", icon: Percent },
-  { id: "sequence-risk", label: "Sequence Risk", shortLabel: "Seq. Risk", icon: AlertTriangle },
-  { id: "net-worth", label: "Net Worth Timeline", shortLabel: "Net Worth", icon: HomeIcon },
-  { id: "loans", label: "Student Loans", shortLabel: "Loans", icon: GraduationCap },
+interface ModeDef {
+  id: Mode;
+  label: string;
+  icon: React.ComponentType<{ size?: number }>;
+  description: string;
+}
+
+const MODES: ModeDef[] = [
+  {
+    id: "what-if",
+    label: "What If",
+    icon: Sparkles,
+    description: "See how small daily habits compound over decades. Skip the latte, raise your contribution, work an extra year — watch how each tiny change moves your finish line.",
+  },
+  {
+    id: "monte-carlo",
+    label: "Monte Carlo",
+    icon: TrendingUp,
+    description: "Run 500 random market simulations to stress-test your plan. Instead of one rosy projection, see the range of outcomes and your real probability of success.",
+  },
+  {
+    id: "coast-fire",
+    label: "Coast FIRE",
+    icon: Anchor,
+    description: "The number you need invested today so you never have to contribute another dollar — growth alone gets you to FIRE. Also covers Barista FIRE for part-time work plans.",
+  },
+  {
+    id: "savings-rate",
+    label: "Savings Rate",
+    icon: Percent,
+    description: "The single most important chart in personal finance: your savings rate (not your salary) determines how many years until you can retire. Plot your spot on the curve.",
+  },
+  {
+    id: "sequence-risk",
+    label: "Sequence Risk",
+    icon: AlertTriangle,
+    description: "Same average return, very different outcomes. A 2008-style crash in year 1 of retirement does massively more damage than the same crash in year 20. Stress-test for it.",
+  },
+  {
+    id: "net-worth",
+    label: "Net Worth Timeline",
+    icon: HomeIcon,
+    description: "Plan major purchases and life events on a timeline. See how a house, sabbatical, or kid affects your long-term net worth and FIRE date.",
+  },
+  {
+    id: "loans",
+    label: "Student Loans",
+    icon: GraduationCap,
+    description: "Pay off student loans aggressively or invest the difference? Compare both strategies side-by-side with your specific balance, rate, and income.",
+  },
 ];
 
 function SimulateInner() {
@@ -36,6 +78,8 @@ function SimulateInner() {
     if (m && MODES.some((x) => x.id === m)) setMode(m);
   }, [params]);
 
+  const current = MODES.find((m) => m.id === mode)!;
+
   return (
     <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6 animate-fade-in">
       <header>
@@ -45,8 +89,9 @@ function SimulateInner() {
         </p>
       </header>
 
+      {/* Single-row scrollable tab bar */}
       <Card className="!p-2">
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-1.5">
+        <div className="flex gap-1.5 overflow-x-auto scrollbar-hide -mx-0.5 px-0.5" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
           {MODES.map((m) => {
             const Icon = m.icon;
             const active = mode === m.id;
@@ -55,20 +100,30 @@ function SimulateInner() {
                 key={m.id}
                 onClick={() => setMode(m.id)}
                 className={cn(
-                  "flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 px-1.5 rounded-xl text-xs sm:text-sm font-semibold transition",
+                  "flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-semibold transition whitespace-nowrap shrink-0",
                   active
                     ? "bg-[var(--green-muted)] text-[var(--green)]"
                     : "text-[var(--text-secondary)] hover:text-white hover:bg-[var(--card-hover)]"
                 )}
               >
                 <Icon size={16} />
-                <span className="sm:hidden">{m.shortLabel}</span>
-                <span className="hidden sm:inline">{m.label}</span>
+                {m.label}
               </button>
             );
           })}
         </div>
       </Card>
+
+      {/* Mode description */}
+      <div className="rounded-xl bg-[var(--surface-light)] border border-[var(--border)] p-4 flex items-start gap-3">
+        <div className="rounded-lg bg-[var(--green-muted)] p-1.5 shrink-0 mt-0.5">
+          <Info className="text-[var(--green)]" size={16} />
+        </div>
+        <div className="min-w-0">
+          <div className="text-sm font-semibold text-white">{current.label}</div>
+          <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed mt-0.5">{current.description}</p>
+        </div>
+      </div>
 
       {mode === "what-if" && <WhatIfMode />}
       {mode === "monte-carlo" && <MonteCarloMode />}

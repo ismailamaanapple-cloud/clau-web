@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { Card, CardTitle, StatValue } from "@/components/ui/Card";
 import { Slider } from "@/components/ui/Slider";
+import { Toggle } from "@/components/ui/Toggle";
 import { formatCurrency } from "@/lib/format";
 import { simulatePayoffVsInvest, mortgagePayment } from "@/lib/realEstate";
 import {
@@ -89,9 +90,7 @@ export function MortgagePayoffMode() {
         </div>
         <div className="rounded-xl bg-[var(--surface-light)] border border-[var(--border)] p-4 flex items-center justify-between mt-3">
           <div className="text-sm text-[var(--text-secondary)] font-medium">Itemize deductions?</div>
-          <button onClick={() => setItemizes(v => !v)} className={`relative w-12 h-6 rounded-full transition ${itemizes ? "bg-[var(--green)]" : "bg-[var(--border)]"}`}>
-            <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-transform ${itemizes ? "translate-x-6" : "translate-x-0.5"}`} />
-          </button>
+          <Toggle checked={itemizes} onChange={setItemizes} label="Itemize deductions" />
         </div>
       </Card>
 

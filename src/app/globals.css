@@ -139,3 +139,7 @@ input[type="number"] {
 .bg-gradient-radial-green {
   background: radial-gradient(circle at 50% 0%, var(--green-muted), transparent 60%);
 }
+
+/* Hide scrollbar (used by horizontal tab bars) */
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }

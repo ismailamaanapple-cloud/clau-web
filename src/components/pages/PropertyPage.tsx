@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { cn } from "@/lib/cn";
-import { Building2, Home as HomeIcon, KeyRound, PiggyBank, RefreshCw, LayoutGrid } from "lucide-react";
+import { Building2, Home as HomeIcon, KeyRound, PiggyBank, RefreshCw, LayoutGrid, Info } from "lucide-react";
 import { RentalCalcMode } from "@/components/property/RentalCalcMode";
 import { BuyVsRentMode } from "@/components/property/BuyVsRentMode";
 import { MortgagePayoffMode } from "@/components/property/MortgagePayoffMode";
@@ -12,16 +12,49 @@ import { MultiPropertyMode } from "@/components/property/MultiPropertyMode";
 
 type Mode = "rental" | "buy-vs-rent" | "payoff" | "refinance" | "multi";
 
-const MODES: { id: Mode; label: string; shortLabel: string; icon: React.ComponentType<{ size?: number }> }[] = [
-  { id: "rental", label: "Rental Calculator", shortLabel: "Rental", icon: HomeIcon },
-  { id: "buy-vs-rent", label: "Buy vs Rent", shortLabel: "Buy vs Rent", icon: KeyRound },
-  { id: "payoff", label: "Payoff vs Invest", shortLabel: "Payoff", icon: PiggyBank },
-  { id: "refinance", label: "Refinance", shortLabel: "Refi", icon: RefreshCw },
-  { id: "multi", label: "Multi-Property", shortLabel: "Portfolio", icon: LayoutGrid },
+interface ModeDef {
+  id: Mode;
+  label: string;
+  icon: React.ComponentType<{ size?: number }>;
+  description: string;
+}
+
+const MODES: ModeDef[] = [
+  {
+    id: "rental",
+    label: "Rental Calculator",
+    icon: HomeIcon,
+    description: "Underwrite a rental purchase end-to-end: cash flow after every expense, cap rate, cash-on-cash return, and a head-to-head with putting the same cash in stocks.",
+  },
+  {
+    id: "buy-vs-rent",
+    label: "Buy vs Rent",
+    icon: KeyRound,
+    description: "Should you buy a home to live in, or rent and invest the down payment? Models opportunity cost, equity buildup, tax deductions, and shows the break-even year.",
+  },
+  {
+    id: "payoff",
+    label: "Payoff vs Invest",
+    icon: PiggyBank,
+    description: "Pay extra on the mortgage to kill it early, or send that money to the market? Compares both strategies over your full loan term.",
+  },
+  {
+    id: "refinance",
+    label: "Refinance",
+    icon: RefreshCw,
+    description: "Should you refinance? Calculates monthly savings, break-even months on closing costs, and lifetime interest saved — including cash-out scenarios.",
+  },
+  {
+    id: "multi",
+    label: "Multi-Property",
+    icon: LayoutGrid,
+    description: "Track multiple rentals in one place. See combined cash flow, total portfolio value, and per-unit performance. Add and remove units on the fly.",
+  },
 ];
 
 export function PropertyPage() {
   const [mode, setMode] = useState<Mode>("rental");
+  const current = MODES.find((m) => m.id === mode)!;
 
   return (
     <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6 animate-fade-in">
@@ -35,7 +68,7 @@ export function PropertyPage() {
       </header>
 
       <Card className="!p-2">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-1.5">
+        <div className="flex gap-1.5 overflow-x-auto scrollbar-hide -mx-0.5 px-0.5">
           {MODES.map((m) => {
             const Icon = m.icon;
             const active = mode === m.id;
@@ -44,20 +77,30 @@ export function PropertyPage() {
                 key={m.id}
                 onClick={() => setMode(m.id)}
                 className={cn(
-                  "flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 px-1.5 rounded-xl text-xs sm:text-sm font-semibold transition",
+                  "flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-semibold transition whitespace-nowrap shrink-0",
                   active
                     ? "bg-[var(--green-muted)] text-[var(--green)]"
                     : "text-[var(--text-secondary)] hover:text-white hover:bg-[var(--card-hover)]"
                 )}
               >
                 <Icon size={16} />
-                <span className="sm:hidden">{m.shortLabel}</span>
-                <span className="hidden sm:inline">{m.label}</span>
+                {m.label}
               </button>
             );
           })}
         </div>
       </Card>
+
+      {/* Mode description */}
+      <div className="rounded-xl bg-[var(--surface-light)] border border-[var(--border)] p-4 flex items-start gap-3">
+        <div className="rounded-lg bg-[var(--green-muted)] p-1.5 shrink-0 mt-0.5">
+          <Info className="text-[var(--green)]" size={16} />
+        </div>
+        <div className="min-w-0">
+          <div className="text-sm font-semibold text-white">{current.label}</div>
+          <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed mt-0.5">{current.description}</p>
+        </div>
+      </div>
 
       {mode === "rental" && <RentalCalcMode />}
       {mode === "buy-vs-rent" && <BuyVsRentMode />}

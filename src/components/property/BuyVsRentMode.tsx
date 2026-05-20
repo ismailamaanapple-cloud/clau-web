@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { Card, CardTitle, StatValue } from "@/components/ui/Card";
 import { Slider } from "@/components/ui/Slider";
+import { Toggle } from "@/components/ui/Toggle";
 import { formatCurrency } from "@/lib/format";
 import { simulateBuyVsRent, type BuyVsRentInputs } from "@/lib/realEstate";
 import {
@@ -157,9 +158,7 @@ export function BuyVsRentMode() {
             <Slider label="Marginal Tax Rate" value={margTax * 100} onChange={(v) => setMargTax(v / 100)} min={0} max={45} step={1} suffix="%" />
             <div className="rounded-xl bg-[var(--surface-light)] border border-[var(--border)] p-4 flex items-center justify-between">
               <div className="text-sm text-[var(--text-secondary)] font-medium">Itemize deductions?</div>
-              <button onClick={() => setItemizes(v => !v)} className={`relative w-12 h-6 rounded-full transition ${itemizes ? "bg-[var(--green)]" : "bg-[var(--border)]"}`}>
-                <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-transform ${itemizes ? "translate-x-6" : "translate-x-0.5"}`} />
-              </button>
+              <Toggle checked={itemizes} onChange={setItemizes} label="Itemize deductions" />
             </div>
           </div>
         </Card>
