@@ -123,8 +123,8 @@ export function WhatIfMode() {
       </div>
 
       {/* Results */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card glow className="bg-gradient-radial-green">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+        <Card glow className="col-span-2 md:col-span-1 bg-gradient-radial-green">
           <CardTitle>Final Value (Invested)</CardTitle>
           <StatValue size="xl" className="neon-text">{formatCurrency(final?.invested ?? 0)}</StatValue>
           <p className="text-sm text-[var(--text-secondary)] mt-2">after {years} years at {annualReturn}%</p>

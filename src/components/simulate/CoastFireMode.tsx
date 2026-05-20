@@ -41,7 +41,7 @@ export function CoastFireMode() {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
         <Card glow className="bg-gradient-radial-green md:col-span-1">
           <div className="flex items-center gap-2 mb-2">
             <Anchor size={16} className="text-[var(--green)]" />

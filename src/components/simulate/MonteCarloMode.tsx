@@ -71,8 +71,8 @@ export function MonteCarloMode() {
     <div className="space-y-6">
       {result && (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card glow className="bg-gradient-radial-green">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+            <Card glow className="col-span-2 md:col-span-1 bg-gradient-radial-green">
               <CardTitle>Success Rate</CardTitle>
               <StatValue size="xl" style={{ color: successColor }} className="!text-current">
                 {formatPercent(result.successRate, 0)}

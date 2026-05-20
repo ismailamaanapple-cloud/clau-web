@@ -24,7 +24,7 @@ export function Healthcare() {
       icon={<HeartPulse size={28} />}
       subtitle="One of the biggest FIRE blockers: insuring yourself from early retirement to 65. ACA subsidies are based on MAGI, so keeping income low matters."
     >
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         <Card glow className="bg-gradient-radial-green">
           <CardTitle>Net Premium /mo</CardTitle>
           <StatValue size="xl" style={{ color: "var(--green)" }} className="!text-current">{formatCurrency(aca.netPremiumMonthly)}</StatValue>

@@ -35,7 +35,7 @@ export function RothConversion() {
       icon={<ArrowRightLeft size={28} />}
       subtitle="The classic early-retirement trick. Move pre-tax money into Roth in low-income years, wait 5 years, then access it penalty-free before 59½."
     >
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         <Card glow className="bg-gradient-radial-green">
           <CardTitle>Total Converted</CardTitle>
           <StatValue size="lg" style={{ color: "var(--green)" }} className="!text-current">{formatCurrency(totalConverted, true)}</StatValue>

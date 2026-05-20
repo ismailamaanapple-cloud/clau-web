@@ -31,8 +31,8 @@ export function SalaryImpact() {
       icon={<DollarSign size={28} />}
       subtitle="How much does a raise actually move your FIRE date when most of it goes to investing vs lifestyle?"
     >
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card glow className="bg-gradient-radial-green">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+        <Card glow className="col-span-2 md:col-span-1 bg-gradient-radial-green">
           <CardTitle>Years Saved</CardTitle>
           <StatValue size="xl" style={{ color: "var(--green)" }} className="!text-current">
             {r.yearsSaved > 100 ? "—" : `${r.yearsSaved.toFixed(1)}`}

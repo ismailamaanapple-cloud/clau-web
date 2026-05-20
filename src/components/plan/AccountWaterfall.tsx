@@ -40,8 +40,8 @@ export function AccountWaterfall() {
       icon={<Layers size={28} />}
       subtitle="The single most important question in investing: where does my next dollar go? Here's the optimal order, customized to your situation."
     >
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card glow className="bg-gradient-radial-green">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+        <Card glow className="col-span-2 md:col-span-1 bg-gradient-radial-green">
           <CardTitle>Annual to Invest</CardTitle>
           <StatValue size="xl">{formatCurrency(monthlyToInvest * 12)}</StatValue>
           <p className="text-xs text-[var(--text-muted)] mt-1">{formatCurrency(monthlyToInvest)}/mo</p>

@@ -49,7 +49,7 @@ export function PlanPage() {
       {TOOLS.map((section) => (
         <section key={section.section}>
           <h2 className="text-xs uppercase tracking-widest text-[var(--text-secondary)] font-semibold mb-3">{section.section}</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {section.items.map((item) => {
               const Icon = item.icon;
               return (

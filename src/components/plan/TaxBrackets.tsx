@@ -48,7 +48,7 @@ export function TaxBrackets() {
       icon={<PieIcon size={28} />}
       subtitle="See exactly which dollar gets taxed at which rate. Effective rate ≠ marginal rate, and most people conflate them."
     >
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         <Card glow className="bg-gradient-radial-green">
           <CardTitle>Take-Home</CardTitle>
           <StatValue size="xl" style={{ color: "var(--green)" }} className="!text-current">{formatCurrency(takeHome, true)}</StatValue>

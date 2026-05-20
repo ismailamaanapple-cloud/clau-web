@@ -54,8 +54,8 @@ export function BuyVsRentMode() {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card glow className="bg-gradient-radial-green">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+        <Card glow className="col-span-2 md:col-span-1 bg-gradient-radial-green">
           <CardTitle>Recommendation</CardTitle>
           <StatValue size="xl" style={{ color: winColor }} className="!text-current capitalize">
             {result.recommendation === "neutral" ? "It's a wash" : result.recommendation}

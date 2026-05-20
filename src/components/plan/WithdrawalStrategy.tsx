@@ -46,7 +46,7 @@ export function WithdrawalStrategy() {
       icon={<BarChart3 size={28} />}
       subtitle="In retirement, which accounts do you tap first? Order matters — wrong order can cost you tens of thousands in lifetime tax."
     >
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         <Card glow className="bg-gradient-radial-green">
           <CardTitle>Final Balance</CardTitle>
           <StatValue size="lg" style={{ color: finalTotal > 0 ? "var(--green)" : "var(--red)" }} className="!text-current">{formatCurrency(finalTotal, true)}</StatValue>

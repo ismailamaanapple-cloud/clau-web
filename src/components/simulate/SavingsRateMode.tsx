@@ -32,8 +32,8 @@ export function SavingsRateMode() {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card glow className="bg-gradient-radial-green">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+        <Card glow className="col-span-2 md:col-span-1 bg-gradient-radial-green">
           <CardTitle>Years to FIRE</CardTitle>
           <StatValue size="xl">{isFinite(yourYears) ? yourYears.toFixed(1) : "∞"}</StatValue>
           <p className="text-xs mt-2 font-semibold" style={{ color: badge.color }}>{badge.label}</p>

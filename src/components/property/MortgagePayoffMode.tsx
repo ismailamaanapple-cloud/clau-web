@@ -37,8 +37,8 @@ export function MortgagePayoffMode() {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card glow className="bg-gradient-radial-green">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+        <Card glow className="col-span-2 md:col-span-1 bg-gradient-radial-green">
           <CardTitle>Better Choice</CardTitle>
           <StatValue size="xl" style={{ color: "var(--green)" }} className="!text-current capitalize">
             {result.betterChoice === "payoff" ? "Pay Off Early" : "Invest the Extra"}

@@ -44,7 +44,7 @@ export function NetWorthHistory() {
       icon={<LineIcon size={28} />}
       subtitle="Log a monthly snapshot, watch the trend, see how much progress you're actually making. Stored locally in your browser."
     >
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         <Card glow className="bg-gradient-radial-green">
           <CardTitle>Current Net Worth</CardTitle>
           <StatValue size="xl">{formatCurrency(last?.netWorth ?? 0, true)}</StatValue>

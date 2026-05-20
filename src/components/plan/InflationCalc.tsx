@@ -30,8 +30,8 @@ export function InflationCalc() {
       icon={<TrendingDown size={28} />}
       subtitle="What your money is actually worth over time — and how much you will need to keep the same buying power."
     >
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card glow className="bg-gradient-radial-green">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+        <Card glow className="col-span-2 md:col-span-1 bg-gradient-radial-green">
           <CardTitle>Today&apos;s Amount</CardTitle>
           <StatValue size="xl">{formatCurrency(amount, true)}</StatValue>
         </Card>

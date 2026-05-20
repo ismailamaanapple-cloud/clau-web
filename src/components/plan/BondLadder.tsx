@@ -46,8 +46,8 @@ export function BondLadder() {
       icon={<Banknote size={28} />}
       subtitle="Spread cash across multiple maturities to lock in yields while keeping near-term liquidity. Especially useful when short-term rates are high."
     >
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card glow className="bg-gradient-radial-green">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+        <Card glow className="col-span-2 md:col-span-1 bg-gradient-radial-green">
           <CardTitle>Annual Income</CardTitle>
           <StatValue size="xl" style={{ color: "var(--green)" }} className="!text-current">{formatCurrency(result.totalAnnualIncome)}</StatValue>
           <p className="text-xs text-[var(--text-muted)] mt-1">{formatCurrency(result.totalAnnualIncome / 12)}/mo</p>

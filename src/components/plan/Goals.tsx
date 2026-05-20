@@ -54,7 +54,7 @@ export function Goals() {
       icon={<Target size={28} />}
       subtitle="Track every savings goal in one place — house deposit, wedding, sabbatical, kid's college. See what's on track and what needs more love."
     >
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         <Card glow className="bg-gradient-radial-green">
           <CardTitle>Total Saved</CardTitle>
           <StatValue size="lg" style={{ color: "var(--green)" }} className="!text-current">{formatCurrency(totals.saved, true)}</StatValue>
