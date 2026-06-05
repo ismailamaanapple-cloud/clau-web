@@ -132,7 +132,7 @@ export function DashboardPage() {
                 formatter={(v) => formatCurrency(Number(v))}
                 labelFormatter={(y) => `Year ${y} · Age ${age + (y as number)}`}
               />
-              <ReferenceLine y={fireTarget} stroke="var(--green-light)" strokeDasharray="4 4" label={{ value: "FIRE Target", fill: "var(--green-light)", fontSize: 11, position: "right" }} />
+              <ReferenceLine y={fireTarget} stroke="var(--green-light)" strokeDasharray="4 4" label={{ value: "FIRE Target", fill: "var(--green-light)", fontSize: 11, position: "insideTopRight" }} />
               <Area
                 type="monotone"
                 dataKey="total"

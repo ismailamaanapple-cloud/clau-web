@@ -9,7 +9,7 @@ import { Card, CardTitle, StatValue } from "@/components/ui/Card";
 import { Slider } from "@/components/ui/Slider";
 import { formatCurrency, formatPercent } from "@/lib/format";
 import { computeNetIncome, type FilingStatus } from "@/lib/tax";
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 
 type Category = {
   key: string;
@@ -133,7 +133,7 @@ export function BudgetPlanner() {
           <StatValue size="md">{formatCurrency(disp(spendAmt))}</StatValue>
           <p className="text-xs text-[var(--text-muted)] mt-1">{spendPct.toFixed(0)}% across {cats.length} buckets</p>
         </Card>
-        <Card>
+        <Card className="col-span-2 md:col-span-1">
           <CardTitle>{overBudget ? "Over Budget" : "Unallocated"}</CardTitle>
           <StatValue size="md" style={{ color: overBudget ? "var(--red)" : leftoverPct > 0.01 ? "var(--yellow)" : "var(--green)" }} className="!text-current">
             {formatCurrency(disp(Math.abs(leftoverAmt)))}
@@ -146,10 +146,10 @@ export function BudgetPlanner() {
 
       <Card>
         <CardTitle>Where Your Money Goes</CardTitle>
-        <div className="h-64 sm:h-80">
+        <div className="relative h-56 sm:h-72">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
-              <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={70} outerRadius={110} paddingAngle={1.5} strokeWidth={0} isAnimationActive={false}>
+              <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius="58%" outerRadius="88%" paddingAngle={1.5} strokeWidth={0} isAnimationActive={false}>
                 {pieData.map((d) => (
                   <Cell key={d.name} fill={d.color} />
                 ))}
@@ -158,9 +158,23 @@ export function BudgetPlanner() {
                 contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, fontSize: 12 }}
                 formatter={(v, n) => [`${formatCurrency(disp(Number(v)))} ${per}`, n]}
               />
-              <Legend wrapperStyle={{ fontSize: 12 }} />
             </PieChart>
           </ResponsiveContainer>
+          {/* Center label fills the donut hole */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+            <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)]">Take-home</span>
+            <span className="text-lg sm:text-2xl font-bold text-white tracking-tight">{formatCurrency(disp(net), true)}</span>
+            <span className="text-[10px] text-[var(--text-muted)]">{per === "/yr" ? "per year" : "per month"}</span>
+          </div>
+        </div>
+        {/* Custom legend — wraps below the chart instead of overlapping it */}
+        <div className="mt-3 flex flex-wrap justify-center gap-x-3 gap-y-1.5">
+          {pieData.map((d) => (
+            <span key={d.name} className="inline-flex items-center gap-1.5 text-[11px] text-[var(--text-secondary)]">
+              <span className="h-2.5 w-2.5 rounded-sm shrink-0" style={{ background: d.color }} />
+              {d.name}
+            </span>
+          ))}
         </div>
       </Card>
 
