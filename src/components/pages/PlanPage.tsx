@@ -3,10 +3,16 @@
 import Link from "next/link";
 import { Card, CardTitle } from "@/components/ui/Card";
 import {
-  Wrench, Layers, PieChart, ArrowRightLeft, BarChart3, Target, LineChart, TrendingDown, DollarSign, Banknote, HeartPulse,
+  Wrench, Layers, PieChart, ArrowRightLeft, BarChart3, Target, LineChart, TrendingDown, DollarSign, Banknote, HeartPulse, Wallet,
 } from "lucide-react";
 
 const TOOLS = [
+  {
+    section: "Budgeting",
+    items: [
+      { href: "/plan/budget", icon: Wallet, title: "Budget Planner", desc: "Enter your take-home pay and savings goal — see what's left for mortgage, groceries, fun, travel, utilities, and more." },
+    ],
+  },
   {
     section: "Taxes & Accounts",
     items: [

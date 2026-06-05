@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { UserProvider } from "@/lib/UserContext";
+import { AuthProvider } from "@/lib/AuthContext";
 import { Shell } from "@/components/Shell";
 
 const inter = Inter({
@@ -30,9 +31,11 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} h-full antialiased`}>
       <body className="min-h-full">
-        <UserProvider>
-          <Shell>{children}</Shell>
-        </UserProvider>
+        <AuthProvider>
+          <UserProvider>
+            <Shell>{children}</Shell>
+          </UserProvider>
+        </AuthProvider>
       </body>
     </html>
   );

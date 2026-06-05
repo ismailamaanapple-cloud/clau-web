@@ -6,12 +6,14 @@ import { Card, CardTitle, StatValue } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { NumberInput } from "@/components/ui/NumberInput";
 import { useUser } from "@/lib/UserContext";
+import { useAuth } from "@/lib/AuthContext";
 import { formatCurrency } from "@/lib/format";
-import { Pencil, LogOut, FileText, Shield, Calculator, Home as HomeIcon, Car, Wallet, TrendingUp } from "lucide-react";
+import { Pencil, LogOut, FileText, Shield, Calculator, Home as HomeIcon, Car, Wallet, TrendingUp, Cloud, CloudOff, LogIn, RefreshCw } from "lucide-react";
 import { NetWorthCalculator } from "@/components/profile/NetWorthCalculator";
 
 export function ProfilePage() {
-  const { profile, updateProfile, resetProfile } = useUser();
+  const { profile, updateProfile, resetProfile, syncing } = useUser();
+  const { user, configured, signOut } = useAuth();
   const [editing, setEditing] = useState(false);
   const [calcOpen, setCalcOpen] = useState(false);
 
@@ -57,14 +59,47 @@ export function ProfilePage() {
     <div className="max-w-3xl mx-auto space-y-4 sm:space-y-6 animate-fade-in">
       <header className="flex items-center justify-between">
         <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-white tracking-tight">Profile</h1>
-        <button
-          onClick={() => { if (confirm("Sign out & reset all local data?")) resetProfile(); }}
-          className="text-[var(--text-muted)] hover:text-[var(--red)]"
-          title="Reset"
-        >
-          <LogOut size={20} />
-        </button>
       </header>
+
+      {/* Account / sync */}
+      <Card>
+        <div className="flex items-center gap-3">
+          <div className={`rounded-lg p-2 shrink-0 ${user ? "bg-[var(--green-muted)]" : "bg-[var(--surface-light)]"}`}>
+            {user ? <Cloud className="text-[var(--green)]" size={18} /> : <CloudOff className="text-[var(--text-muted)]" size={18} />}
+          </div>
+          <div className="flex-1 min-w-0">
+            {user ? (
+              <>
+                <div className="text-sm font-semibold text-white truncate">{user.email ?? "Signed in"}</div>
+                <div className="text-xs text-[var(--text-secondary)] flex items-center gap-1">
+                  {syncing ? (<><RefreshCw size={11} className="animate-spin" /> Syncing…</>) : "Synced to the cloud"}
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="text-sm font-semibold text-white">Saving locally on this device</div>
+                <div className="text-xs text-[var(--text-secondary)]">Sign in to sync across all your devices.</div>
+              </>
+            )}
+          </div>
+          {user ? (
+            <Button size="sm" variant="secondary" onClick={() => signOut()}>
+              <LogOut size={14} className="inline mr-1.5" /> Sign out
+            </Button>
+          ) : (
+            <Link href="/login">
+              <Button size="sm">
+                <LogIn size={14} className="inline mr-1.5" /> Sign in
+              </Button>
+            </Link>
+          )}
+        </div>
+        {!configured && (
+          <p className="text-xs text-[var(--text-muted)] mt-3 leading-relaxed">
+            Cloud sync isn&apos;t configured yet. Your data is safe in this browser. Add Supabase keys to enable accounts.
+          </p>
+        )}
+      </Card>
 
       {/* Identity */}
       <Card>
@@ -156,6 +191,15 @@ export function ProfilePage() {
           </Link>
         </div>
       </Card>
+
+      <div className="text-center">
+        <button
+          onClick={() => { if (confirm("Reset all data on this device? This can't be undone.")) resetProfile(); }}
+          className="text-xs text-[var(--text-muted)] hover:text-[var(--red)] transition"
+        >
+          Reset all local data
+        </button>
+      </div>
 
       <p className="text-center text-xs text-[var(--text-muted)]">
         CLAU is educational only — not financial advice.
