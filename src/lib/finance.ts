@@ -32,6 +32,84 @@ export function projectGrowth(
   return points;
 }
 
+// 4%-rule drawdown: accumulate (with monthly contributions) until a chosen age,
+// then withdraw a fixed % of the balance-at-retirement, grown by inflation each
+// year. Because returns usually outpace the withdrawal, the balance keeps
+// compounding while paying you income — this captures that trajectory by age.
+export interface DrawdownYear {
+  age: number;
+  balance: number; // end-of-year balance
+  withdrawal: number; // amount pulled this year (0 while accumulating)
+  contribution: number; // amount added this year (0 while withdrawing)
+  cumulativeWithdrawn: number;
+  phase: "accumulate" | "withdraw";
+}
+
+export function projectDrawdown(opts: {
+  startBalance: number;
+  currentAge: number;
+  monthlyContribution: number;
+  withdrawalStartAge: number;
+  endAge: number;
+  annualReturnPct: number;
+  withdrawalRatePct: number; // e.g. 4 for the 4% rule
+  inflationPct: number; // raises the withdrawal each year
+}): DrawdownYear[] {
+  const r = opts.annualReturnPct / 100;
+  const monthlyR = r / 12;
+  const infl = opts.inflationPct / 100;
+  const startAge = Math.max(opts.currentAge, opts.withdrawalStartAge);
+  let balance = opts.startBalance;
+  let baseWithdrawal = 0;
+  let cumulative = 0;
+
+  const rows: DrawdownYear[] = [
+    {
+      age: opts.currentAge,
+      balance,
+      withdrawal: 0,
+      contribution: 0,
+      cumulativeWithdrawn: 0,
+      phase: opts.currentAge >= startAge ? "withdraw" : "accumulate",
+    },
+  ];
+
+  for (let age = opts.currentAge + 1; age <= opts.endAge; age++) {
+    if (age < startAge) {
+      // Accumulation: contribute monthly and compound.
+      for (let m = 0; m < 12; m++) balance = balance * (1 + monthlyR) + opts.monthlyContribution;
+      rows.push({
+        age,
+        balance,
+        withdrawal: 0,
+        contribution: opts.monthlyContribution * 12,
+        cumulativeWithdrawn: cumulative,
+        phase: "accumulate",
+      });
+    } else {
+      // Withdrawal: lock the first-year amount to the balance at retirement,
+      // then bump it by inflation. Pull at the start of the year, grow the rest.
+      if (baseWithdrawal === 0) {
+        baseWithdrawal = balance * (opts.withdrawalRatePct / 100);
+      } else {
+        baseWithdrawal *= 1 + infl;
+      }
+      const w = Math.min(balance, baseWithdrawal);
+      balance = Math.max(0, (balance - w) * (1 + r));
+      cumulative += w;
+      rows.push({
+        age,
+        balance,
+        withdrawal: w,
+        contribution: 0,
+        cumulativeWithdrawn: cumulative,
+        phase: "withdraw",
+      });
+    }
+  }
+  return rows;
+}
+
 export interface MonteCarloResult {
   paths: number[][]; // [path][year] - kept for diagnostic, limited to a few sample paths
   finalValues: number[];

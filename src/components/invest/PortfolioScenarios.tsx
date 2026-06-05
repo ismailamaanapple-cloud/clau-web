@@ -7,6 +7,8 @@ import { PORTFOLIO_SCENARIOS, ETFS } from "@/lib/data/etfs";
 import { projectGrowth } from "@/lib/finance";
 import { formatCurrency, capitalGainsTaxRate } from "@/lib/format";
 import { useUser } from "@/lib/UserContext";
+import { DrawdownProjection } from "@/components/invest/DrawdownProjection";
+import { cn } from "@/lib/cn";
 
 export function PortfolioScenarios() {
   const { profile } = useUser();
@@ -15,6 +17,7 @@ export function PortfolioScenarios() {
   const age = profile.age ?? 30;
   const retirementAge = profile.retirementAge ?? 60;
   const [years, setYears] = useState(Math.max(5, retirementAge - age));
+  const [drawdownId, setDrawdownId] = useState(PORTFOLIO_SCENARIOS[0]?.id);
 
   const scenarios = useMemo(() => {
     return PORTFOLIO_SCENARIOS.map((s) => {
@@ -127,6 +130,34 @@ export function PortfolioScenarios() {
           </Card>
         ))}
       </div>
+
+      {/* 4% rule drawdown for a chosen scenario */}
+      <Card>
+        <CardTitle>Living Off It — Pick a Portfolio</CardTitle>
+        <div className="flex flex-wrap gap-1.5 mt-2 mb-1">
+          {scenarios.map((s) => (
+            <button
+              key={s.id}
+              onClick={() => setDrawdownId(s.id)}
+              className={cn(
+                "px-3 py-1.5 rounded-lg text-xs font-semibold transition",
+                drawdownId === s.id
+                  ? "bg-[var(--green-muted)] text-[var(--green)]"
+                  : "bg-[var(--surface-light)] text-[var(--text-secondary)] hover:text-white"
+              )}
+            >
+              {s.name} <span className="opacity-60">{s.weightedReturn.toFixed(1)}%</span>
+            </button>
+          ))}
+        </div>
+      </Card>
+      <DrawdownProjection
+        annualReturnPct={(scenarios.find((s) => s.id === drawdownId) ?? scenarios[0]).weightedReturn}
+        initial={initial}
+        monthly={monthly}
+        currentAge={age}
+        defaultStartAge={retirementAge}
+      />
     </div>
   );
 }

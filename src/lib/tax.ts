@@ -87,6 +87,47 @@ export function effectiveRate(taxableIncome: number, brackets: Bracket[]): numbe
   return taxFromBrackets(taxableIncome, brackets) / taxableIncome;
 }
 
+// Take-home pay: gross wages → federal income tax + FICA + flat state tax → net.
+// State is modeled as a flat % of income after the federal standard deduction,
+// matching the Tax Bracket Visualizer's simplification.
+export interface NetIncomeBreakdown {
+  gross: number;
+  taxableIncome: number;
+  federal: number;
+  socialSecurity: number;
+  medicare: number;
+  state: number;
+  totalTax: number;
+  net: number;
+  effectiveRate: number; // total tax / gross
+}
+
+export function computeNetIncome(opts: {
+  grossAnnual: number;
+  filingStatus: FilingStatus;
+  stateRatePct: number;
+}): NetIncomeBreakdown {
+  const brackets = opts.filingStatus === "mfj" ? FEDERAL_BRACKETS_MFJ : FEDERAL_BRACKETS_SINGLE;
+  const deduction = opts.filingStatus === "mfj" ? STANDARD_DEDUCTION.mfj : STANDARD_DEDUCTION.single;
+  const taxableIncome = Math.max(0, opts.grossAnnual - deduction);
+  const federal = taxFromBrackets(taxableIncome, brackets);
+  const fica = ficaTax(opts.grossAnnual);
+  const state = Math.max(0, taxableIncome * (opts.stateRatePct / 100));
+  const totalTax = federal + fica.total + state;
+  const net = opts.grossAnnual - totalTax;
+  return {
+    gross: opts.grossAnnual,
+    taxableIncome,
+    federal,
+    socialSecurity: fica.socialSecurity,
+    medicare: fica.medicare,
+    state,
+    totalTax,
+    net,
+    effectiveRate: opts.grossAnnual > 0 ? totalTax / opts.grossAnnual : 0,
+  };
+}
+
 // FICA: Social Security 6.2% up to wage base + Medicare 1.45%
 const SS_WAGE_BASE_2024 = 168_600;
 export function ficaTax(wages: number): { socialSecurity: number; medicare: number; total: number } {

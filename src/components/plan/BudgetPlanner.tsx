@@ -7,7 +7,8 @@ import {
 import { PlanLayout } from "./_shared";
 import { Card, CardTitle, StatValue } from "@/components/ui/Card";
 import { Slider } from "@/components/ui/Slider";
-import { formatCurrency } from "@/lib/format";
+import { formatCurrency, formatPercent } from "@/lib/format";
+import { computeNetIncome, type FilingStatus } from "@/lib/tax";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
 type Category = {
@@ -15,7 +16,7 @@ type Category = {
   label: string;
   icon: typeof Home;
   color: string;
-  pct: number; // share of take-home income, in %
+  pct: number; // share of take-home (post-tax) income, in %
 };
 
 // Defaults loosely follow a 50/30/20 framework. Savings is its own slice;
@@ -38,14 +39,23 @@ const DEFAULTS: Category[] = [
 const clone = (cats: Category[]) => cats.map((c) => ({ ...c }));
 
 export function BudgetPlanner() {
-  const [income, setIncome] = useState(6000); // stored as MONTHLY take-home
+  const [grossAnnual, setGrossAnnual] = useState(150_000); // pre-tax annual salary
+  const [filing, setFiling] = useState<FilingStatus>("single");
+  const [stateRate, setStateRate] = useState(5);
   const [savingsPct, setSavingsPct] = useState(DEFAULT_SAVINGS_PCT);
   const [cats, setCats] = useState<Category[]>(clone(DEFAULTS));
   const [annual, setAnnual] = useState(false);
 
-  const mult = annual ? 12 : 1;
+  // Taxes turn gross pay into the post-tax dollars the whole budget is built on.
+  const tax = useMemo(
+    () => computeNetIncome({ grossAnnual, filingStatus: filing, stateRatePct: stateRate }),
+    [grossAnnual, filing, stateRate]
+  );
+
+  const divisor = annual ? 1 : 12; // annual figures shown per-period
   const per = annual ? "/yr" : "/mo";
-  const incomeLabel = annual ? "Annual Take-Home" : "Monthly Take-Home";
+  const disp = (annualValue: number) => annualValue / divisor;
+  const netLabel = annual ? "Annual Take-Home" : "Monthly Take-Home";
 
   const setCatPct = (key: string, pct: number) =>
     setCats((prev) => prev.map((c) => (c.key === key ? { ...c, pct } : c)));
@@ -56,23 +66,22 @@ export function BudgetPlanner() {
   };
 
   const spendPct = useMemo(() => cats.reduce((s, c) => s + c.pct, 0), [cats]);
-  const allocatedPct = savingsPct + spendPct;
-  const leftoverPct = 100 - allocatedPct;
+  const leftoverPct = 100 - (savingsPct + spendPct);
 
-  // All amounts below are in the displayed period (monthly or annual).
-  const periodIncome = income * mult;
-  const savingsAmt = (periodIncome * savingsPct) / 100;
-  const spendAmt = (periodIncome * spendPct) / 100;
-  const leftoverAmt = (periodIncome * leftoverPct) / 100;
+  // All allocation amounts are shares of NET (post-tax) take-home.
+  const net = tax.net;
+  const savingsAmt = (net * savingsPct) / 100;
+  const spendAmt = (net * spendPct) / 100;
+  const leftoverAmt = (net * leftoverPct) / 100;
 
   const pieData = useMemo(() => {
     const data = [
-      { name: "Savings", value: (periodIncome * savingsPct) / 100, color: "var(--green-dark)" },
-      ...cats.map((c) => ({ name: c.label, value: (periodIncome * c.pct) / 100, color: c.color })),
+      { name: "Savings", value: (net * savingsPct) / 100, color: "var(--green-dark)" },
+      ...cats.map((c) => ({ name: c.label, value: (net * c.pct) / 100, color: c.color })),
     ];
-    if (leftoverPct > 0.01) data.push({ name: "Unallocated", value: (periodIncome * leftoverPct) / 100, color: "var(--border-light)" });
+    if (leftoverPct > 0.01) data.push({ name: "Unallocated", value: (net * leftoverPct) / 100, color: "var(--border-light)" });
     return data.filter((d) => d.value > 0);
-  }, [cats, periodIncome, savingsPct, leftoverPct]);
+  }, [cats, net, savingsPct, leftoverPct]);
 
   const overBudget = leftoverPct < -0.01;
 
@@ -80,7 +89,7 @@ export function BudgetPlanner() {
     <PlanLayout
       title="Budget Planner"
       icon={<Wallet size={28} />}
-      subtitle="Set your take-home pay and savings target — see exactly what's left for the mortgage, groceries, fun, travel, and everything in between."
+      subtitle="Enter your gross pay — we subtract federal, FICA, and state tax, then show exactly what's left after savings for the mortgage, groceries, fun, travel, and everything in between."
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
         {/* Monthly / Annual segmented control */}
@@ -110,23 +119,24 @@ export function BudgetPlanner() {
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         <Card glow className="col-span-2 md:col-span-1 bg-gradient-radial-green">
-          <CardTitle>{incomeLabel}</CardTitle>
-          <StatValue size="lg">{formatCurrency(periodIncome)}</StatValue>
+          <CardTitle>{netLabel}</CardTitle>
+          <StatValue size="lg">{formatCurrency(disp(net))}</StatValue>
+          <p className="text-xs text-[var(--text-muted)] mt-1">after {formatPercent(tax.effectiveRate * 100, 1)} in taxes</p>
         </Card>
         <Card>
           <CardTitle className="flex items-center gap-1.5"><PiggyBank size={13} /> Saving</CardTitle>
-          <StatValue size="md" style={{ color: "var(--green)" }} className="!text-current">{formatCurrency(savingsAmt)}</StatValue>
-          <p className="text-xs text-[var(--text-muted)] mt-1">{savingsPct}% of income</p>
+          <StatValue size="md" style={{ color: "var(--green)" }} className="!text-current">{formatCurrency(disp(savingsAmt))}</StatValue>
+          <p className="text-xs text-[var(--text-muted)] mt-1">{savingsPct}% of take-home</p>
         </Card>
         <Card>
           <CardTitle>To Spend</CardTitle>
-          <StatValue size="md">{formatCurrency(spendAmt)}</StatValue>
+          <StatValue size="md">{formatCurrency(disp(spendAmt))}</StatValue>
           <p className="text-xs text-[var(--text-muted)] mt-1">{spendPct.toFixed(0)}% across {cats.length} buckets</p>
         </Card>
         <Card>
           <CardTitle>{overBudget ? "Over Budget" : "Unallocated"}</CardTitle>
           <StatValue size="md" style={{ color: overBudget ? "var(--red)" : leftoverPct > 0.01 ? "var(--yellow)" : "var(--green)" }} className="!text-current">
-            {formatCurrency(Math.abs(leftoverAmt))}
+            {formatCurrency(disp(Math.abs(leftoverAmt)))}
           </StatValue>
           <p className="text-xs text-[var(--text-muted)] mt-1">
             {overBudget ? "Trim a bucket to balance" : leftoverPct > 0.01 ? "Still up for grabs" : "Every dollar has a job"}
@@ -146,7 +156,7 @@ export function BudgetPlanner() {
               </Pie>
               <Tooltip
                 contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, fontSize: 12 }}
-                formatter={(v, n) => [`${formatCurrency(Number(v))} ${per}`, n]}
+                formatter={(v, n) => [`${formatCurrency(disp(Number(v)))} ${per}`, n]}
               />
               <Legend wrapperStyle={{ fontSize: 12 }} />
             </PieChart>
@@ -155,30 +165,63 @@ export function BudgetPlanner() {
       </Card>
 
       <Card>
-        <CardTitle>Income & Savings</CardTitle>
+        <CardTitle>Income &amp; Taxes</CardTitle>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
-          <Slider
-            label={`${annual ? "Annual" : "Monthly"} take-home pay`}
-            value={periodIncome}
-            onChange={(v) => setIncome(v / mult)}
-            min={500 * mult}
-            max={50_000 * mult}
-            step={100 * mult}
-            prefix="$"
-          />
-          <Slider label="Save first" value={savingsPct} onChange={setSavingsPct} min={0} max={80} step={1} suffix="% of income" />
+          <Slider label="Annual gross income" value={grossAnnual} onChange={setGrossAnnual} min={20_000} max={3_000_000} step={1_000} prefix="$" />
+          <Slider label="State income tax" value={stateRate} onChange={setStateRate} min={0} max={15} step={0.25} suffix="%" />
+          <div className="rounded-xl bg-[var(--surface-light)] border border-[var(--border)] p-4 md:col-span-2">
+            <div className="text-sm text-[var(--text-secondary)] mb-2 font-medium">Filing status</div>
+            <div className="flex gap-2">
+              {(["single", "mfj"] as const).map((f) => (
+                <button
+                  key={f}
+                  type="button"
+                  onClick={() => setFiling(f)}
+                  className={`flex-1 py-2 rounded-lg text-xs font-semibold transition ${filing === f ? "bg-[var(--green-muted)] text-[var(--green)]" : "bg-[var(--card)] text-[var(--text-secondary)]"}`}
+                >
+                  {f === "single" ? "Single" : "Married Filing Jointly"}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-4 space-y-2 text-sm">
+          <Row label="Gross income" value={`${formatCurrency(disp(tax.gross))}${per}`} bold />
+          <Row label="Federal income tax" value={`−${formatCurrency(disp(tax.federal))}${per}`} muted />
+          <Row label="Social Security (6.2%)" value={`−${formatCurrency(disp(tax.socialSecurity))}${per}`} muted />
+          <Row label="Medicare (1.45%)" value={`−${formatCurrency(disp(tax.medicare))}${per}`} muted />
+          <Row label={`State tax (${stateRate}%)`} value={`−${formatCurrency(disp(tax.state))}${per}`} muted />
+          <div className="border-t border-[var(--border)] my-1" />
+          <Row label={`Total tax (${formatPercent(tax.effectiveRate * 100, 1)} effective)`} value={`−${formatCurrency(disp(tax.totalTax))}${per}`} />
+          <Row label="Net take-home" value={`${formatCurrency(disp(tax.net))}${per}`} positive bold />
         </div>
       </Card>
 
       <Card>
-        <CardTitle>Spending Buckets</CardTitle>
+        <CardTitle>Savings &amp; Spending Buckets</CardTitle>
         <p className="text-xs text-[var(--text-muted)] mt-1 mb-4">
-          Each bucket is a share of your take-home pay. Adjust until {overBudget ? <span className="text-[var(--red)]">you&apos;re back under 100%</span> : "it feels right"}.
+          Each is a share of your <span className="text-white">post-tax</span> take-home. Adjust until {overBudget ? <span className="text-[var(--red)]">you&apos;re back under 100%</span> : "it feels right"}.
         </p>
+
+        {/* Savings highlighted first */}
+        <div className="mb-3">
+          <div className="flex items-center justify-between mb-1.5 px-1">
+            <span className="flex items-center gap-2 text-sm font-medium text-white">
+              <span className="inline-flex h-6 w-6 items-center justify-center rounded-md" style={{ background: "var(--green-muted)", color: "var(--green)" }}>
+                <PiggyBank size={14} />
+              </span>
+              Save first
+            </span>
+            <span className="text-sm font-bold tabular-nums" style={{ color: "var(--green)" }}>{formatCurrency(disp(savingsAmt))}{per}</span>
+          </div>
+          <Slider label={`${savingsPct}% of take-home`} value={savingsPct} onChange={setSavingsPct} min={0} max={80} step={1} suffix="%" />
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {cats.map((c) => {
             const Icon = c.icon;
-            const amt = (periodIncome * c.pct) / 100;
+            const amt = (net * c.pct) / 100;
             return (
               <div key={c.key}>
                 <div className="flex items-center justify-between mb-1.5 px-1">
@@ -188,14 +231,23 @@ export function BudgetPlanner() {
                     </span>
                     {c.label}
                   </span>
-                  <span className="text-sm font-bold tabular-nums" style={{ color: c.color }}>{formatCurrency(amt)}{per}</span>
+                  <span className="text-sm font-bold tabular-nums" style={{ color: c.color }}>{formatCurrency(disp(amt))}{per}</span>
                 </div>
-                <Slider label={`${c.pct}% of income`} value={c.pct} onChange={(n) => setCatPct(c.key, n)} min={0} max={60} step={1} suffix="%" />
+                <Slider label={`${c.pct}% of take-home`} value={c.pct} onChange={(n) => setCatPct(c.key, n)} min={0} max={60} step={1} suffix="%" />
               </div>
             );
           })}
         </div>
       </Card>
     </PlanLayout>
+  );
+}
+
+function Row({ label, value, positive, muted, bold }: { label: string; value: string; positive?: boolean; muted?: boolean; bold?: boolean }) {
+  return (
+    <div className="flex items-center justify-between">
+      <span className={muted ? "text-[var(--text-muted)]" : "text-[var(--text-secondary)]"}>{label}</span>
+      <span className={`font-medium ${positive ? "text-[var(--green)]" : bold ? "text-white font-bold text-base" : "text-white"}`}>{value}</span>
+    </div>
   );
 }

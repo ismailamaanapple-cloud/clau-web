@@ -6,6 +6,7 @@ import { Slider } from "@/components/ui/Slider";
 import { Button } from "@/components/ui/Button";
 import { ETFS, POPULAR_STOCKS } from "@/lib/data/etfs";
 import { projectGrowth } from "@/lib/finance";
+import { DrawdownProjection } from "@/components/invest/DrawdownProjection";
 import { formatCurrency, capitalGainsTaxRate } from "@/lib/format";
 import { useUser } from "@/lib/UserContext";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine } from "recharts";
@@ -200,6 +201,15 @@ export function CustomPortfolio() {
           </ResponsiveContainer>
         </div>
       </Card>
+
+      {/* 4% rule drawdown */}
+      <DrawdownProjection
+        annualReturnPct={weightedReturn}
+        initial={initialInv}
+        monthly={monthly}
+        currentAge={age}
+        defaultStartAge={retirementAge}
+      />
 
       {/* Holdings */}
       <Card>
