@@ -70,7 +70,7 @@ export function Shell({ children }: { children: ReactNode }) {
       {/* Mobile top bar — background fills up under the status bar / Dynamic Island,
           while the logo is pushed below it via the top safe-area inset. */}
       <div
-        className="md:hidden fixed top-0 inset-x-0 z-40 bg-[var(--surface)]/95 backdrop-blur-md border-b border-[var(--border)] py-2.5 flex items-center justify-between"
+        className="md:hidden fixed top-0 inset-x-0 z-40 bg-[var(--surface)] border-b border-[var(--border)] py-2.5 flex items-center justify-between"
         style={{
           paddingTop: "calc(0.625rem + env(safe-area-inset-top))",
           paddingLeft: "max(1rem, env(safe-area-inset-left))",
@@ -82,7 +82,7 @@ export function Shell({ children }: { children: ReactNode }) {
 
       {/* Mobile bottom tab bar — fills down past the home indicator. */}
       <nav
-        className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-[var(--surface)]/95 backdrop-blur-md border-t border-[var(--border)] flex"
+        className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-[var(--surface)] border-t border-[var(--border)] flex"
         style={{
           paddingBottom: "env(safe-area-inset-bottom)",
           paddingLeft: "env(safe-area-inset-left)",
