@@ -153,6 +153,7 @@ export function PortfolioScenarios() {
       </Card>
       <DrawdownProjection
         annualReturnPct={(scenarios.find((s) => s.id === drawdownId) ?? scenarios[0]).weightedReturn}
+        dividendYieldPct={(scenarios.find((s) => s.id === drawdownId) ?? scenarios[0]).weightedDividend}
         initial={initial}
         monthly={monthly}
         currentAge={age}

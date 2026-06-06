@@ -205,6 +205,7 @@ export function CustomPortfolio() {
       {/* 4% rule drawdown */}
       <DrawdownProjection
         annualReturnPct={weightedReturn}
+        dividendYieldPct={weightedDividend}
         initial={initialInv}
         monthly={monthly}
         currentAge={age}
