@@ -147,7 +147,7 @@ export function AuthScreen() {
 
 function Wrapper({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[var(--background)] relative overflow-hidden px-4 py-10">
+    <div className="min-h-dvh flex items-center justify-center bg-[var(--background)] relative overflow-hidden px-4 py-10">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute top-[10%] left-[15%] w-[260px] h-[260px] rounded-full bg-[var(--green-muted)] blur-3xl animate-orb-1" />
         <div className="absolute bottom-[20%] right-[10%] w-[300px] h-[300px] rounded-full bg-[var(--green-muted)] blur-3xl animate-orb-2" />

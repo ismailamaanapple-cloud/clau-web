@@ -21,7 +21,7 @@ export default function AuthCallback() {
   }, [authLoading, user, router]);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-[var(--background)]">
+    <div className="min-h-dvh flex flex-col items-center justify-center gap-4 bg-[var(--background)]">
       <Logo size={48} />
       <p className="text-sm text-[var(--text-secondary)] animate-pulse">Signing you in…</p>
     </div>

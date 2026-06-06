@@ -67,7 +67,15 @@ export function Onboarding() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[var(--background)] relative overflow-hidden px-4 py-10">
+    <div
+      className="min-h-dvh flex items-center justify-center bg-[var(--background)] relative overflow-hidden px-4 py-10"
+      style={{
+        paddingTop: "max(2.5rem, env(safe-area-inset-top))",
+        paddingBottom: "max(2.5rem, env(safe-area-inset-bottom))",
+        paddingLeft: "max(1rem, env(safe-area-inset-left))",
+        paddingRight: "max(1rem, env(safe-area-inset-right))",
+      }}
+    >
       {/* Floating background orbs */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute top-[10%] left-[15%] w-[260px] h-[260px] rounded-full bg-[var(--green-muted)] blur-3xl animate-orb-1" />

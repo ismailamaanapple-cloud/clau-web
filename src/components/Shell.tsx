@@ -26,7 +26,7 @@ export function Shell({ children }: { children: ReactNode }) {
 
   if (!loaded) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[var(--background)]">
+      <div className="min-h-dvh flex items-center justify-center bg-[var(--background)]">
         <Logo size={48} />
       </div>
     );
@@ -37,7 +37,7 @@ export function Shell({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-dvh flex">
       {/* Sidebar */}
       <aside className="hidden md:flex flex-col w-60 border-r border-[var(--border)] bg-[var(--surface)] px-5 py-7 sticky top-0 h-screen">
         <Logo size={36} />
@@ -67,15 +67,27 @@ export function Shell({ children }: { children: ReactNode }) {
         </div>
       </aside>
 
-      {/* Mobile top bar */}
-      <div className="md:hidden fixed top-0 inset-x-0 z-40 bg-[var(--surface)]/95 backdrop-blur-md border-b border-[var(--border)] px-4 py-2.5 flex items-center justify-between">
+      {/* Mobile top bar — background fills up under the status bar / Dynamic Island,
+          while the logo is pushed below it via the top safe-area inset. */}
+      <div
+        className="md:hidden fixed top-0 inset-x-0 z-40 bg-[var(--surface)]/95 backdrop-blur-md border-b border-[var(--border)] py-2.5 flex items-center justify-between"
+        style={{
+          paddingTop: "calc(0.625rem + env(safe-area-inset-top))",
+          paddingLeft: "max(1rem, env(safe-area-inset-left))",
+          paddingRight: "max(1rem, env(safe-area-inset-right))",
+        }}
+      >
         <Logo size={26} />
       </div>
 
-      {/* Mobile bottom tab bar */}
+      {/* Mobile bottom tab bar — fills down past the home indicator. */}
       <nav
         className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-[var(--surface)]/95 backdrop-blur-md border-t border-[var(--border)] flex"
-        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+        style={{
+          paddingBottom: "env(safe-area-inset-bottom)",
+          paddingLeft: "env(safe-area-inset-left)",
+          paddingRight: "env(safe-area-inset-right)",
+        }}
       >
         {NAV.map((item) => {
           const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
@@ -96,7 +108,7 @@ export function Shell({ children }: { children: ReactNode }) {
         })}
       </nav>
 
-      <main className="flex-1 min-w-0 px-4 md:px-10 pt-14 pb-[calc(5rem+env(safe-area-inset-bottom))] md:pt-10 md:pb-10 md:py-10">
+      <main className="flex-1 min-w-0 px-4 md:px-10 pt-[calc(3.5rem+env(safe-area-inset-top))] pb-[calc(5rem+env(safe-area-inset-bottom))] md:pt-10 md:pb-10 md:py-10">
         {children}
       </main>
     </div>

@@ -14,12 +14,20 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "CLAU — Plan your path to FIRE",
   description: "Modern retirement planner with Monte Carlo simulations and portfolio projections.",
+  // Edge-to-edge full-screen experience when added to the iOS home screen.
+  appleWebApp: {
+    capable: true,
+    title: "CLAU",
+    statusBarStyle: "black-translucent",
+  },
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  // Let the app paint under the notch / Dynamic Island and home indicator.
   viewportFit: "cover",
+  // Matches --background so Safari's bars blend seamlessly into the app.
   themeColor: "#0B0B0F",
 };
 
