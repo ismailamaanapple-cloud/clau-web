@@ -27,8 +27,9 @@ export const viewport: Viewport = {
   initialScale: 1,
   // Let the app paint under the notch / Dynamic Island and home indicator.
   viewportFit: "cover",
-  // Matches --background so Safari's bars blend seamlessly into the app.
-  themeColor: "#0B0B0F",
+  // Matches --surface (the header & bottom tab bars) so the area around the
+  // Dynamic Island and Safari's bottom domain bar blend with the app chrome.
+  themeColor: "#15151B",
 };
 
 export default function RootLayout({
