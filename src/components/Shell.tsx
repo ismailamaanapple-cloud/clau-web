@@ -67,17 +67,23 @@ export function Shell({ children }: { children: ReactNode }) {
         </div>
       </aside>
 
-      {/* Mobile top bar — background fills up under the status bar / Dynamic Island,
-          while the logo is pushed below it via the top safe-area inset. */}
+      {/* Mobile top bar — solid --surface at the very top (so it blends with
+          Safari's status bar) then fades into the page background, with the
+          logo's green glow spilling down into the content instead of cutting off. */}
       <div
-        className="md:hidden fixed top-0 inset-x-0 z-40 bg-[var(--surface)] border-b border-[var(--border)] py-2.5 flex items-center justify-between"
+        className="md:hidden fixed top-0 inset-x-0 z-40 bg-gradient-to-b from-[var(--surface)] via-[var(--surface)] to-[var(--background)] py-2.5 flex items-center justify-between"
         style={{
           paddingTop: "calc(0.625rem + env(safe-area-inset-top))",
           paddingLeft: "max(1rem, env(safe-area-inset-left))",
           paddingRight: "max(1rem, env(safe-area-inset-right))",
         }}
       >
-        <Logo size={26} />
+        {/* soft green glow emanating from the logo, bleeding past the bar */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute left-2 -bottom-12 h-28 w-52 rounded-full bg-[var(--green)] opacity-20 blur-3xl"
+        />
+        <Logo size={26} className="relative" />
       </div>
 
       {/* Mobile bottom tab bar — fills down past the home indicator. */}
