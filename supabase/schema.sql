@@ -12,7 +12,14 @@ create table if not exists public.profiles (
   updated_at  timestamptz not null default now()
 );
 
--- Row Level Security: without this, the anon key could read everyone's data.
+-- Grant the logged-in role table access. Creating a table via raw SQL does NOT
+-- auto-grant privileges to Supabase's `authenticated` role (the dashboard table
+-- UI does this for you), so without this, signed-in users hit a 42501 error.
+-- The `anon` role intentionally gets nothing — only logged-in users touch this.
+grant select, insert, update on public.profiles to authenticated;
+
+-- Row Level Security: without this, any authenticated user could read everyone's
+-- data. The policies below scope every row to its owner (auth.uid() = id).
 alter table public.profiles enable row level security;
 
 -- A user may read only their own row.
