@@ -14,7 +14,35 @@ pnpm dev
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3001](http://localhost:3001) with your browser to see the result.
+
+## Login & cloud sync (Supabase)
+
+The app works with **no setup** — without Supabase it runs in "guest mode" and
+saves everything to the browser's localStorage. To enable real **login** and
+**cloud sync** (so a user's profile, portfolio, and saved scenarios follow them
+across devices), do the following once:
+
+1. **Create a Supabase project** at [supabase.com](https://supabase.com) (free tier is fine).
+2. **Create the database table.** In the Supabase Dashboard → **SQL Editor** →
+   New query, paste the contents of [`supabase/schema.sql`](supabase/schema.sql)
+   and click **Run**. This creates the `profiles` table the app reads/writes and
+   locks it down with row-level security (each user only sees their own data).
+3. **Add your API keys.** In Dashboard → **Project Settings → API**, copy the
+   *Project URL* and the *anon public* key. Then:
+   - **Locally:** `cp .env.local.example .env.local` and fill in both values.
+   - **On Vercel:** Project → Settings → Environment Variables, add
+     `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`, then redeploy.
+4. **Enable sign-in methods.** In Dashboard → **Authentication → Providers**,
+   enable Email, and optionally **Google** and **Apple** (the app already has
+   buttons for all three). For Google/Apple, follow Supabase's provider guide and
+   add `https://<your-domain>/auth/callback` as an allowed redirect URL under
+   **Authentication → URL Configuration**.
+
+That's it — once the env vars are present the login UI activates automatically
+and profiles start syncing to the cloud.
+
+Locally the dev server runs on port **3001** (`npm run dev`).
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 

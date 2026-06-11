@@ -1,23 +1,33 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Card, CardTitle, StatValue } from "@/components/ui/Card";
 import { Slider } from "@/components/ui/Slider";
 import { simulateBorrowVsSell } from "@/lib/finance";
 import { formatCurrency } from "@/lib/format";
+import { useUser } from "@/lib/UserContext";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend, ReferenceLine } from "recharts";
 import { AlertTriangle, Landmark, Receipt, Lightbulb } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 export function BorrowVsSellMode() {
-  const [portfolioValue, setPortfolioValue] = useState(2_000_000);
-  const [costBasisPct, setCostBasisPct] = useState(40);
-  const [annualSpending, setAnnualSpending] = useState(100_000);
-  const [loanRate, setLoanRate] = useState(6);
-  const [growth, setGrowth] = useState(8);
-  const [inflation, setInflation] = useState(3);
-  const [years, setYears] = useState(20);
-  const [maxLtv, setMaxLtv] = useState(50);
+  const { profile, updateProfile } = useUser();
+  const saved = profile.borrowVsSell;
+  const [portfolioValue, setPortfolioValue] = useState(saved?.portfolioValue ?? 2_000_000);
+  const [costBasisPct, setCostBasisPct] = useState(saved?.costBasisPct ?? 40);
+  const [annualSpending, setAnnualSpending] = useState(saved?.annualSpending ?? 100_000);
+  const [loanRate, setLoanRate] = useState(saved?.loanRate ?? 6);
+  const [growth, setGrowth] = useState(saved?.growth ?? 8);
+  const [inflation, setInflation] = useState(saved?.inflation ?? 3);
+  const [years, setYears] = useState(saved?.years ?? 20);
+  const [maxLtv, setMaxLtv] = useState(saved?.maxLtv ?? 50);
+
+  // Persist all inputs so the scenario is there next time.
+  useEffect(() => {
+    updateProfile({
+      borrowVsSell: { portfolioValue, costBasisPct, annualSpending, loanRate, growth, inflation, years, maxLtv },
+    });
+  }, [portfolioValue, costBasisPct, annualSpending, loanRate, growth, inflation, years, maxLtv, updateProfile]);
 
   const sim = useMemo(
     () =>

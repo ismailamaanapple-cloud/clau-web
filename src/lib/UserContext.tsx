@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, ReactNode, useRef } from "react";
+import { createContext, useContext, useEffect, useState, ReactNode, useRef, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/AuthContext";
 
@@ -61,6 +61,31 @@ export interface UserProfile {
   goals?: SavingsGoal[];
   expenses?: ExpenseCategory[];
   monthlyIncome?: number;
+  // Invest tab — saved portfolio & tool inputs
+  investHoldings?: SavedHolding[];
+  incomeGoalMonthly?: number;
+  borrowVsSell?: BorrowVsSellInputs;
+}
+
+// A single ETF/stock line in the user's saved portfolio. Structurally matches
+// the Holding type used by the Invest UI (kept here so lib has no UI imports).
+export interface SavedHolding {
+  symbol: string;
+  name: string;
+  avgReturn: number;
+  dividendYield: number;
+  allocation: number;
+}
+
+export interface BorrowVsSellInputs {
+  portfolioValue: number;
+  costBasisPct: number;
+  annualSpending: number;
+  loanRate: number;
+  growth: number;
+  inflation: number;
+  years: number;
+  maxLtv: number;
 }
 
 const STORAGE_KEY = "clau-user-profile-v1";
@@ -165,16 +190,16 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }
   }, [profile, loaded, user]);
 
-  const updateProfile = (patch: Partial<UserProfile>) => {
+  const updateProfile = useCallback((patch: Partial<UserProfile>) => {
     setProfile((p) => ({ ...p, ...patch }));
-  };
+  }, []);
 
-  const resetProfile = () => {
+  const resetProfile = useCallback(() => {
     setProfile(defaultProfile);
     try {
       localStorage.removeItem(STORAGE_KEY);
     } catch {}
-  };
+  }, []);
 
   return (
     <UserContext.Provider value={{ profile, loaded, syncing, updateProfile, resetProfile }}>

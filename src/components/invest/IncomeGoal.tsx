@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Card, CardTitle, StatValue } from "@/components/ui/Card";
 import { Slider } from "@/components/ui/Slider";
 import { HoldingsEditor, DEFAULT_HOLDINGS, type Holding } from "@/components/invest/HoldingsEditor";
@@ -20,13 +20,18 @@ import { cn } from "@/lib/cn";
 const TIMELINE_OPTIONS = [5, 10, 15, 20, 25, 30, 35, 40];
 
 export function IncomeGoal() {
-  const { profile } = useUser();
+  const { profile, updateProfile } = useUser();
   const age = profile.age ?? 30;
   const retirementAge = profile.retirementAge ?? 60;
-  const [targetMonthly, setTargetMonthly] = useState(5_000);
+  const [targetMonthly, setTargetMonthly] = useState(profile.incomeGoalMonthly ?? 5_000);
   const [initial, setInitial] = useState(profile.initialInvestment ?? 25_000);
   const [years, setYears] = useState(Math.min(40, Math.max(5, retirementAge - age)));
-  const [holdings, setHoldings] = useState<Holding[]>(DEFAULT_HOLDINGS);
+  const [holdings, setHoldings] = useState<Holding[]>(() => profile.investHoldings ?? DEFAULT_HOLDINGS);
+
+  // Persist the goal target and the chosen portfolio (shared with Custom Portfolio).
+  useEffect(() => {
+    updateProfile({ incomeGoalMonthly: targetMonthly, investHoldings: holdings });
+  }, [targetMonthly, holdings, updateProfile]);
 
   const weightedReturn = holdings.reduce((sum, h) => sum + h.avgReturn * (h.allocation / 100), 0);
   const weightedDividend = holdings.reduce((sum, h) => sum + h.dividendYield * (h.allocation / 100), 0);

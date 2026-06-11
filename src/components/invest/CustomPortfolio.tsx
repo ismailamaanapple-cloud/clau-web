@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Card, CardTitle, StatValue } from "@/components/ui/Card";
 import { Slider } from "@/components/ui/Slider";
 import { projectGrowth, portfolioIncome } from "@/lib/finance";
@@ -13,14 +13,19 @@ import { MoveHorizontal } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 export function CustomPortfolio() {
-  const { profile } = useUser();
+  const { profile, updateProfile } = useUser();
   const age = profile.age ?? 30;
   const retirementAge = profile.retirementAge ?? 60;
   const [initialInv, setInitialInv] = useState(profile.initialInvestment ?? 25_000);
   const [monthly, setMonthly] = useState(profile.monthlyContribution ?? 2_000);
   const [years, setYears] = useState(Math.max(5, retirementAge - age));
-  const [holdings, setHoldings] = useState<Holding[]>(DEFAULT_HOLDINGS);
+  const [holdings, setHoldings] = useState<Holding[]>(() => profile.investHoldings ?? DEFAULT_HOLDINGS);
   const [hoveredYear, setHoveredYear] = useState<number | null>(null);
+
+  // Persist the chosen portfolio so it survives reloads and syncs across devices.
+  useEffect(() => {
+    updateProfile({ investHoldings: holdings });
+  }, [holdings, updateProfile]);
 
   const weightedReturn = holdings.reduce((sum, h) => sum + h.avgReturn * (h.allocation / 100), 0);
   const weightedDividend = holdings.reduce((sum, h) => sum + h.dividendYield * (h.allocation / 100), 0);

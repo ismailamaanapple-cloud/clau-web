@@ -16,8 +16,8 @@ export interface Holding {
 }
 
 export const DEFAULT_HOLDINGS: Holding[] = [
-  { ...ETFS.find((e) => e.symbol === "VTI")!, allocation: 70 },
-  { ...ETFS.find((e) => e.symbol === "BND")!, allocation: 30 },
+  { ...ETFS.find((e) => e.symbol === "VOO")!, allocation: 70 },
+  { ...ETFS.find((e) => e.symbol === "QQQ")!, allocation: 30 },
 ];
 
 // Editable list of ETF/stock holdings with allocation sliders. Allocations are
