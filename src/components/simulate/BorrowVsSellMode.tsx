@@ -6,7 +6,7 @@ import { Slider } from "@/components/ui/Slider";
 import { simulateBorrowVsSell } from "@/lib/finance";
 import { formatCurrency } from "@/lib/format";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend, ReferenceLine } from "recharts";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Landmark, Receipt, Lightbulb } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 export function BorrowVsSellMode() {
@@ -40,6 +40,49 @@ export function BorrowVsSellMode() {
 
   return (
     <div className="space-y-6">
+      {/* Plain-language intro */}
+      <Card glow className="border-[var(--green-muted)]">
+        <CardTitle>What This Compares</CardTitle>
+        <p className="text-sm text-[var(--text-secondary)] leading-relaxed mt-1">
+          Say you have a big stock portfolio and need{" "}
+          <span className="text-white font-semibold">{formatCurrency(annualSpending)}</span> a year to live on. There
+          are two ways to turn those stocks into spending money — and they cost very different amounts.
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
+          <div className="rounded-xl bg-[var(--surface-light)] border border-[var(--border)] p-4">
+            <div className="flex items-center gap-2 mb-1.5">
+              <Receipt size={16} className="text-[var(--red)]" />
+              <span className="text-sm font-bold text-white">Option 1 · Sell shares</span>
+            </div>
+            <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+              Sell a chunk of stock each year. Simple — but every sale is a taxable event, so you hand the IRS
+              capital-gains tax on the profit portion <span className="text-white font-semibold">every single year</span>.
+            </p>
+          </div>
+          <div className="rounded-xl bg-[var(--surface-light)] border border-[var(--border)] p-4">
+            <div className="flex items-center gap-2 mb-1.5">
+              <Landmark size={16} className="text-[var(--green)]" />
+              <span className="text-sm font-bold text-white">Option 2 · Borrow against it</span>
+            </div>
+            <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+              Keep every share and take a loan using the portfolio as collateral (an{" "}
+              <span className="text-white font-semibold">SBLOC</span>). A loan isn&apos;t income, so there&apos;s no tax —
+              you just pay interest. This is the &ldquo;buy, borrow, die&rdquo; move the ultra-wealthy use.
+            </p>
+          </div>
+        </div>
+        <div className="flex items-start gap-2.5 mt-3 rounded-xl bg-[var(--green-muted)] p-3.5">
+          <Lightbulb size={16} className="text-[var(--green)] shrink-0 mt-0.5" />
+          <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+            <span className="text-white font-semibold">The whole game:</span> is the{" "}
+            <span className="text-[var(--yellow)] font-semibold">interest</span> on the loan cheaper than the{" "}
+            <span className="text-[var(--red)] font-semibold">taxes</span> you&apos;d owe from selling? And does your
+            portfolio grow faster than the loan piles up? The cards below run the math for your numbers — adjust the
+            inputs near the bottom to make it your own.
+          </p>
+        </div>
+      </Card>
+
       {/* Strategy cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <StrategyCard
@@ -73,6 +116,27 @@ export function BorrowVsSellMode() {
             {borrowWins ? "Borrowing" : "Selling"} comes out ahead — interest cost {formatCurrency(sim.totalInterest, true)} vs taxes {formatCurrency(sim.totalTax, true)}.
           </p>
         </div>
+        <div className="mt-4 rounded-xl bg-[var(--surface-light)] border border-[var(--border)] p-4">
+          <p className="text-[10px] uppercase tracking-wider text-[var(--green)] font-semibold mb-1">In plain English</p>
+          <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
+            {borrowWins ? (
+              <>
+                Over {years} years, borrowing cost <span className="text-[var(--yellow)] font-semibold">{formatCurrency(sim.totalInterest, true)}</span> in
+                interest, while selling would have cost <span className="text-[var(--red)] font-semibold">{formatCurrency(sim.totalTax, true)}</span> in
+                taxes. Borrowing still wins because your shares stayed invested and kept compounding instead of being
+                sold off — leaving you <span className="text-[var(--green)] font-semibold">{formatCurrency(diff)}</span> richer at the end.
+              </>
+            ) : (
+              <>
+                Over {years} years, selling cost <span className="text-[var(--red)] font-semibold">{formatCurrency(sim.totalTax, true)}</span> in
+                taxes, while borrowing would have cost <span className="text-[var(--yellow)] font-semibold">{formatCurrency(sim.totalInterest, true)}</span> in
+                interest. Here selling wins — the loan interest (at {loanRate}%) piled up faster than the tax you save,
+                so selling leaves you <span className="text-[var(--green)] font-semibold">{formatCurrency(diff)}</span> richer. Try a lower
+                loan rate or higher growth to flip it.
+              </>
+            )}
+          </p>
+        </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-4">
           <Mini label="Interest Paid (Borrow)" value={formatCurrency(sim.totalInterest, true)} />
           <Mini label="Taxes Paid (Sell)" value={formatCurrency(sim.totalTax, true)} />
@@ -102,6 +166,11 @@ export function BorrowVsSellMode() {
       {/* Net worth chart */}
       <Card>
         <CardTitle>Net Worth Over Time</CardTitle>
+        <p className="text-xs text-[var(--text-muted)] -mt-1 mb-1">
+          <span className="text-[var(--green)] font-semibold">Green</span> = what you&apos;re worth if you borrow (portfolio minus the loan).{" "}
+          <span className="text-[var(--red)] font-semibold">Red</span> = what&apos;s left if you sell shares to fund spending.{" "}
+          <span className="text-[var(--yellow)] font-semibold">Yellow dashed</span> = how big the loan grows.
+        </p>
         <div className="h-72 mt-2">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={sim.rows} margin={{ top: 10, right: 16, left: 0, bottom: 0 }}>
@@ -126,6 +195,11 @@ export function BorrowVsSellMode() {
       {/* Cumulative cost chart: interest vs taxes */}
       <Card>
         <CardTitle>Cumulative Cost · Interest vs Taxes</CardTitle>
+        <p className="text-xs text-[var(--text-muted)] -mt-1 mb-1">
+          The running total each path costs you — <span className="text-[var(--yellow)] font-semibold">interest</span> if you
+          borrow, <span className="text-[var(--red)] font-semibold">taxes</span> if you sell. Whichever line stays lower is the
+          cheaper way to fund the same lifestyle.
+        </p>
         <div className="h-60 mt-2">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={sim.rows} margin={{ top: 10, right: 16, left: 0, bottom: 0 }}>
