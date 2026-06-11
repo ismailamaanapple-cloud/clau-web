@@ -1,3 +1,6 @@
+import { capitalGainsTaxRate } from "./format";
+import { taxFromBrackets, LTCG_BRACKETS_SINGLE } from "./tax";
+
 export interface ProjectionPoint {
   year: number;
   total: number;
@@ -340,5 +343,208 @@ export function simulateLoanStrategy(opts: {
     totalInterest,
     payoffMonth,
     finalNetWorth: invest - loan,
+  };
+}
+
+// === Retirement income goal =================================================
+// After-tax income a portfolio throws off under the 4% rule + dividends —
+// the same model used across the Invest tab (LTCG on the withdrawal, 35% on
+// dividends).
+export interface PortfolioIncome {
+  annualWithdraw: number;
+  annualDividend: number;
+  totalIncome: number;
+  capRate: number;
+  capTax: number;
+  divTax: number;
+  afterTax: number;
+}
+
+export function portfolioIncome(value: number, dividendYieldPct: number, withdrawalRatePct = 4): PortfolioIncome {
+  const annualWithdraw = value * (withdrawalRatePct / 100);
+  const annualDividend = value * (dividendYieldPct / 100);
+  const totalIncome = annualWithdraw + annualDividend;
+  const capRate = capitalGainsTaxRate(annualWithdraw);
+  const capTax = annualWithdraw * capRate;
+  const divTax = annualDividend * 0.35;
+  const afterTax = totalIncome - capTax - divTax;
+  return { annualWithdraw, annualDividend, totalIncome, capRate, capTax, divTax, afterTax };
+}
+
+// Smallest portfolio whose after-tax income (4% rule + dividends) covers the
+// target. afterTax is monotonic in value, so bisection converges fast.
+export function portfolioForAfterTaxIncome(
+  annualAfterTaxTarget: number,
+  dividendYieldPct: number,
+  withdrawalRatePct = 4
+): number {
+  if (annualAfterTaxTarget <= 0) return 0;
+  let lo = 0;
+  let hi = Math.max(1_000_000, annualAfterTaxTarget * 40);
+  while (portfolioIncome(hi, dividendYieldPct, withdrawalRatePct).afterTax < annualAfterTaxTarget) hi *= 2;
+  for (let i = 0; i < 80; i++) {
+    const mid = (lo + hi) / 2;
+    if (portfolioIncome(mid, dividendYieldPct, withdrawalRatePct).afterTax < annualAfterTaxTarget) lo = mid;
+    else hi = mid;
+  }
+  return hi;
+}
+
+// Monthly contribution needed for `initial` to grow to `target` in `years`.
+export function monthlyContributionForTarget(
+  target: number,
+  initial: number,
+  years: number,
+  annualReturnPct: number
+): number {
+  const rm = annualReturnPct / 100 / 12;
+  const n = years * 12;
+  const fvInitial = initial * Math.pow(1 + rm, n);
+  if (fvInitial >= target) return 0;
+  const annuityFactor = rm === 0 ? n : (Math.pow(1 + rm, n) - 1) / rm;
+  return (target - fvInitial) / annuityFactor;
+}
+
+// One-time amount needed today (on top of `initial`) to grow to `target`.
+export function lumpSumForTarget(
+  target: number,
+  initial: number,
+  years: number,
+  annualReturnPct: number
+): number {
+  const r = annualReturnPct / 100;
+  return Math.max(0, target / Math.pow(1 + r, years) - initial);
+}
+
+// === Borrow vs Sell ("buy, borrow, die") ====================================
+// Fund the same annual spending two ways and compare what each costs:
+//  - Sell: liquidate shares each year, paying LTCG tax on the gain portion.
+//  - Borrow: take a portfolio line of credit (SBLOC); interest capitalizes
+//    onto the loan, shares are never sold, gains are never realized.
+export interface BorrowVsSellYear {
+  year: number;
+  spending: number;
+  // sell strategy
+  sellPortfolio: number;
+  soldGross: number;
+  taxPaid: number;
+  cumTax: number;
+  // borrow strategy
+  borrowPortfolio: number;
+  loanBalance: number;
+  borrowNetWorth: number;
+  interestAccrued: number;
+  cumInterest: number;
+  ltvPct: number;
+}
+
+export interface BorrowVsSellResult {
+  rows: BorrowVsSellYear[];
+  totalTax: number;
+  totalInterest: number;
+  sellDepletedYear: number | null;
+  marginCallYear: number | null; // first year loan-to-value crosses the limit
+  finalUnrealizedGain: number; // borrow-side gains that step-up basis erases at death
+  finalSellNetWorth: number;
+  finalBorrowNetWorth: number;
+}
+
+export function simulateBorrowVsSell(opts: {
+  portfolioValue: number;
+  costBasisPct: number; // % of today's value originally paid for the shares
+  annualSpending: number;
+  growthPct: number;
+  loanRatePct: number;
+  inflationPct: number;
+  years: number;
+  maxLtvPct: number; // lender's maintenance limit before a margin call
+}): BorrowVsSellResult {
+  const g = opts.growthPct / 100;
+  const infl = opts.inflationPct / 100;
+  const lr = opts.loanRatePct / 100;
+
+  let sellValue = opts.portfolioValue;
+  let sellBasis = opts.portfolioValue * (opts.costBasisPct / 100);
+  const borrowBasis = sellBasis;
+  let borrowValue = opts.portfolioValue;
+  let loan = 0;
+  let cumTax = 0;
+  let cumInterest = 0;
+  let sellDepletedYear: number | null = null;
+  let marginCallYear: number | null = null;
+
+  const rows: BorrowVsSellYear[] = [
+    {
+      year: 0,
+      spending: 0,
+      sellPortfolio: sellValue,
+      soldGross: 0,
+      taxPaid: 0,
+      cumTax: 0,
+      borrowPortfolio: borrowValue,
+      loanBalance: 0,
+      borrowNetWorth: borrowValue,
+      interestAccrued: 0,
+      cumInterest: 0,
+      ltvPct: 0,
+    },
+  ];
+
+  for (let y = 1; y <= opts.years; y++) {
+    const spending = opts.annualSpending * Math.pow(1 + infl, y - 1);
+
+    // --- Sell: grow, then sell enough shares to net the spending after tax.
+    // The taxable gain is the sold amount times the portfolio's gain fraction;
+    // gross up iteratively since the tax depends on the amount sold.
+    sellValue *= 1 + g;
+    let soldGross = 0;
+    let taxPaid = 0;
+    if (sellValue > 0) {
+      const gainFrac = Math.max(0, 1 - sellBasis / sellValue);
+      let gross = spending;
+      for (let it = 0; it < 10; it++) {
+        gross = spending + taxFromBrackets(gross * gainFrac, LTCG_BRACKETS_SINGLE);
+      }
+      soldGross = Math.min(gross, sellValue);
+      taxPaid = taxFromBrackets(soldGross * gainFrac, LTCG_BRACKETS_SINGLE);
+      sellBasis = Math.max(0, sellBasis * (1 - soldGross / sellValue));
+      sellValue -= soldGross;
+      if (sellValue <= 0 && sellDepletedYear === null) sellDepletedYear = y;
+    }
+    cumTax += taxPaid;
+
+    // --- Borrow: shares untouched; spending and interest pile onto the loan.
+    borrowValue *= 1 + g;
+    const interest = loan * lr;
+    cumInterest += interest;
+    loan += interest + spending;
+    const ltvPct = borrowValue > 0 ? (loan / borrowValue) * 100 : Infinity;
+    if (ltvPct >= opts.maxLtvPct && marginCallYear === null) marginCallYear = y;
+
+    rows.push({
+      year: y,
+      spending,
+      sellPortfolio: sellValue,
+      soldGross,
+      taxPaid,
+      cumTax,
+      borrowPortfolio: borrowValue,
+      loanBalance: loan,
+      borrowNetWorth: borrowValue - loan,
+      interestAccrued: interest,
+      cumInterest,
+      ltvPct,
+    });
+  }
+
+  return {
+    rows,
+    totalTax: cumTax,
+    totalInterest: cumInterest,
+    sellDepletedYear,
+    marginCallYear,
+    finalUnrealizedGain: Math.max(0, borrowValue - borrowBasis),
+    finalSellNetWorth: sellValue,
+    finalBorrowNetWorth: borrowValue - loan,
   };
 }

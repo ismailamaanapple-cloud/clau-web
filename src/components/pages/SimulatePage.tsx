@@ -10,10 +10,11 @@ import { LoansMode } from "@/components/simulate/LoansMode";
 import { CoastFireMode } from "@/components/simulate/CoastFireMode";
 import { SavingsRateMode } from "@/components/simulate/SavingsRateMode";
 import { SequenceRiskMode } from "@/components/simulate/SequenceRiskMode";
+import { BorrowVsSellMode } from "@/components/simulate/BorrowVsSellMode";
 import { cn } from "@/lib/cn";
-import { Sparkles, TrendingUp, Home as HomeIcon, GraduationCap, Anchor, Percent, AlertTriangle, Info } from "lucide-react";
+import { Sparkles, TrendingUp, Home as HomeIcon, GraduationCap, Anchor, Percent, AlertTriangle, Info, Landmark } from "lucide-react";
 
-type Mode = "what-if" | "monte-carlo" | "coast-fire" | "savings-rate" | "sequence-risk" | "net-worth" | "loans";
+type Mode = "what-if" | "monte-carlo" | "coast-fire" | "savings-rate" | "sequence-risk" | "net-worth" | "loans" | "borrow-vs-sell";
 
 interface ModeDef {
   id: Mode;
@@ -64,6 +65,12 @@ const MODES: ModeDef[] = [
     label: "Student Loans",
     icon: GraduationCap,
     description: "Pay off student loans aggressively or invest the difference? Compare both strategies side-by-side with your specific balance, rate, and income.",
+  },
+  {
+    id: "borrow-vs-sell",
+    label: "Borrow vs Sell",
+    icon: Landmark,
+    description: "The \"buy, borrow, die\" playbook: instead of selling stock and paying capital gains tax, the wealthy borrow against their portfolio. Simulate it — compare interest payments vs tax payments and see when it actually works.",
   },
 ];
 
@@ -132,6 +139,7 @@ function SimulateInner() {
       {mode === "sequence-risk" && <SequenceRiskMode />}
       {mode === "net-worth" && <NetWorthMode />}
       {mode === "loans" && <LoansMode />}
+      {mode === "borrow-vs-sell" && <BorrowVsSellMode />}
     </div>
   );
 }
