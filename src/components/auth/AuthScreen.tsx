@@ -12,11 +12,11 @@ type Mode = "signin" | "signup";
 
 export function AuthScreen() {
   const router = useRouter();
-  const { configured, signInWithGoogle, signInWithApple, signInWithEmail, signUpWithEmail } = useAuth();
+  const { configured, signInWithEmail, signUpWithEmail } = useAuth();
   const [mode, setMode] = useState<Mode>("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [busy, setBusy] = useState<null | "google" | "apple" | "email">(null);
+  const [busy, setBusy] = useState<null | "email">(null);
   const [error, setError] = useState<string | null>(null);
   const [sentConfirmation, setSentConfirmation] = useState(false);
 
@@ -31,14 +31,6 @@ export function AuthScreen() {
     if (res.error) { setError(res.error); return; }
     if ("needsConfirmation" in res && res.needsConfirmation) { setSentConfirmation(true); return; }
     router.push("/");
-  };
-
-  const oauth = async (provider: "google" | "apple") => {
-    setError(null);
-    setBusy(provider);
-    const res = provider === "google" ? await signInWithGoogle() : await signInWithApple();
-    if (res.error) { setError(res.error); setBusy(null); }
-    // On success the browser redirects away, so no need to reset busy.
   };
 
   if (sentConfirmation) {
@@ -77,32 +69,6 @@ export function AuthScreen() {
           Sign-in isn&apos;t connected yet. Add your Supabase keys to <code>.env.local</code> (see README) — until then the app saves locally in this browser.
         </div>
       )}
-
-      {/* Social */}
-      <div className="flex flex-col gap-2.5">
-        <button
-          onClick={() => oauth("google")}
-          disabled={busy !== null || !configured}
-          className="flex items-center justify-center gap-3 w-full py-3 rounded-xl bg-white text-[#1f1f1f] font-semibold text-sm hover:bg-gray-100 transition disabled:opacity-50"
-        >
-          {busy === "google" ? <Loader2 className="animate-spin" size={18} /> : <GoogleIcon />}
-          Continue with Google
-        </button>
-        <button
-          onClick={() => oauth("apple")}
-          disabled={busy !== null || !configured}
-          className="flex items-center justify-center gap-2.5 w-full py-3 rounded-xl bg-white text-black font-semibold text-sm hover:bg-gray-100 transition disabled:opacity-50"
-        >
-          {busy === "apple" ? <Loader2 className="animate-spin" size={18} /> : <AppleIcon />}
-          Continue with Apple
-        </button>
-      </div>
-
-      <div className="flex items-center gap-3 my-1">
-        <div className="flex-1 h-px bg-[var(--border)]" />
-        <span className="text-xs text-[var(--text-muted)]">or</span>
-        <div className="flex-1 h-px bg-[var(--border)]" />
-      </div>
 
       {/* Email */}
       <form onSubmit={handleEmail} className="flex flex-col gap-3">
@@ -154,24 +120,5 @@ function Wrapper({ children }: { children: React.ReactNode }) {
       </div>
       <div className="relative w-full max-w-sm flex flex-col gap-4 animate-slide-up">{children}</div>
     </div>
-  );
-}
-
-function GoogleIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24">
-      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" />
-      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23z" />
-      <path fill="#FBBC05" d="M5.84 14.1a6.6 6.6 0 0 1 0-4.2V7.06H2.18a11 11 0 0 0 0 9.88l3.66-2.84z" />
-      <path fill="#EA4335" d="M12 4.75c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 1.46 14.97.5 12 .5A11 11 0 0 0 2.18 7.06l3.66 2.84C6.71 7.3 9.14 4.75 12 4.75z" />
-    </svg>
-  );
-}
-
-function AppleIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="black">
-      <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
-    </svg>
   );
 }
